@@ -1,0 +1,12 @@
+{
+    "name": "whitekuma",
+    "version": "0.0.1",
+    "author": "Louis Lam",
+    "license": "MIT",
+    "description": "An easy-to-use MariaDB backup tool",
+    "scripts": {
+        "lint": "deno lint",
+        "lint-fix": "deno fmt",
+        "start": "deno task start-server-dev"
+    }
+}

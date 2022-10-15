@@ -1,0 +1,32 @@
+{
+    "tasks": {
+        "start-server-dev": "deno run --allow-net --allow-run --allow-read=./ --watch=backend/ ./backend/index.ts"
+    },
+    "compilerOptions": {
+        "allowJs": false,
+        "lib": [],
+        "strict": true
+    },
+    "lint": {
+        "files": {
+            "include": [],
+            "exclude": ["frontend/"]
+        },
+        "rules": {
+            "tags": ["recommended"],
+            "include": [],
+            "exclude": []
+        }
+    },
+    "fmt": {
+        "files": {
+            "include": [],
+            "exclude": ["frontend/"]
+        },
+        "options": {
+            "useTabs": false,
+            "indentWidth": 4,
+            "singleQuote": false
+        }
+    }
+}
