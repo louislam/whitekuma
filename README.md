@@ -1,6 +1,6 @@
 # MariaDB Backup Tool by Whitekuma
 
-An easy-to-use MariaDB backup tool.
+An easy-to-use MariaDB incremental backup tool.
 
 ## Motivation
 
