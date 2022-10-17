@@ -1,4 +1,4 @@
-# MariaDB Backup Tool by Whitekuma
+# MariaDB Backup Tool by WhiteKuma
 
 An easy-to-use MariaDB incremental backup tool.
 
