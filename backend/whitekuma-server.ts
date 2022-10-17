@@ -4,9 +4,11 @@ import { MariaBackupMethod } from "./methods/mariabackup-method";
 import { Database } from "./database";
 import Cryptr from "cryptr";
 import { Job } from "./job";
+import consoleStamp from "console-stamp";
 
 export class WhiteKumaServer {
 
+    public version : string = "unknown";
     private static instance : WhiteKumaServer;
     private app : Express = express();
 
@@ -30,11 +32,27 @@ export class WhiteKumaServer {
     }
 
     async init() : Promise<void> {
-        this.app.use("/app", apiRouter);
+        let includeLog = [ "log", "info", "warn", "error" ];
+
+        if ((process.env.NODE_ENV === "development")) {
+            includeLog.push("debug");
+        }
+
+        consoleStamp(console, {
+            format: ":date().blue :label(7).green",
+            include: includeLog,
+        });
+
+        console.log("Welcome to WhiteKuma");
+
+        if (process.env.npm_package_version) {
+            this.version = process.env.npm_package_version;
+        }
+
+        console.debug("Adding API Router");
+        this.app.use("/api", apiRouter);
         this.db = await Database.createDB(this.dataDir);
         this._cryptr = new Cryptr(this.db.data.secret);
-
-        console.log("Welcome to Whitekuma");
 
         this.app.listen(this.port, () => {
             console.log(`⚡️Server is running at http://localhost:${this.port}`);
@@ -56,7 +74,10 @@ export class WhiteKumaServer {
         for (let jobData of jobDataList) {
             let job = new Job(jobData, this.dataDir);
             this.jobList.push(job);
-            job.start();
+
+            if (jobData.active) {
+                job.start();
+            }
         }
     }
 

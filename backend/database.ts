@@ -13,7 +13,7 @@ export class Database {
         // LowDB is an ES Module, have to load using await, so put here
         let { Low, JSONFile } = await import("lowdb");
 
-        const filename = path.join(dataDir, "db.json");
+        const filename = path.join(dataDir, "config.json");
         const lowDB = new Low(new JSONFile<Data>(filename));
         await lowDB.read();
 
@@ -34,12 +34,7 @@ export class Database {
     }
 
     get data() : Data {
-        if (!this.lowDB.data) {
-            this.lowDB.data = {
-                secret: "",
-                jobs: []
-            };
-        }
+        // @ts-ignore As it must be set in createDB(), it never be null.
         return this.lowDB.data;
     }
 

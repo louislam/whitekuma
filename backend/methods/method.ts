@@ -7,7 +7,12 @@ export abstract class Method {
 
     constructor(job : Job, dataDir: string) {
         this.job = job;
-        this._baseDir = path.join(dataDir, this.job.jobData.id.toString());
+
+        if (this.job.jobData.storagePath) {
+            this._baseDir = this.job.jobData.storagePath;
+        } else {
+            this._baseDir = path.join(dataDir, this.job.jobData.id.toString());
+        }
     }
 
     abstract backup(): Promise<void>;

@@ -9,6 +9,7 @@ export class Job {
     private readonly _jobData : JobData;
     private method : Method;
     private running : boolean = false;
+    private cron : Cron;
 
     constructor(jobData : JobData, dataDir : string) {
         this._jobData = jobData;
@@ -21,7 +22,7 @@ export class Job {
     }
 
     start() {
-        Cron(this._jobData.cron, async () => {
+        this.cron = Cron(this._jobData.cron, async () => {
             if (this.running) {
                 return;
             }
