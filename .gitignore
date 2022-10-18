@@ -2,3 +2,5 @@
 .idea
 data
 node_modules
+/tmp
+/frontend/dist

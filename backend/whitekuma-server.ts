@@ -1,6 +1,5 @@
 import { apiRouter } from "./routers/api-router";
 import express, { Express } from "express";
-import { MariaBackupMethod } from "./methods/mariabackup-method";
 import { Database } from "./database";
 import Cryptr from "cryptr";
 import { Job } from "./job";

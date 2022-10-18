@@ -1,0 +1,448 @@
+@import "vars.scss";
+@import "node_modules/bootstrap/scss/bootstrap";
+
+#app {
+    font-family: BlinkMacSystemFont, segoe ui, Roboto, helvetica neue, Arial, noto sans, sans-serif, apple color emoji, segoe ui emoji, segoe ui symbol, noto color emoji;
+}
+
+h1 {
+    font-size: 32px;
+}
+
+h2 {
+    font-size: 26px;
+}
+
+textarea.form-control {
+    border-radius: 19px;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+.bg-dark {
+    color: white;
+}
+
+// optgroup
+optgroup {
+    color: #b1b1b1;
+    option {
+        color: #212529;
+    }
+}
+
+.dark {
+    optgroup {
+        color: #535864;
+        option {
+            color: $dark-font-color;
+        }
+    }
+}
+
+
+// Scrollbar
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 20px;
+}
+
+.modal {
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    border-radius: 1rem;
+    box-shadow: 0 15px 70px rgba(0, 0, 0, 0.1);
+
+    .dark & {
+        box-shadow: 0 15px 70px rgb(0 0 0);
+        background-color: $dark-bg;
+    }
+}
+
+.shadow-box {
+    //overflow: hidden;   // Forget why add this, but multiple select hide by this
+    box-shadow: 0 15px 70px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+
+    &.big-padding {
+        padding: 20px;
+    }
+}
+
+.shadow-box {
+    //overflow: hidden;   // Forget why add this, but multiple select hide by this
+    box-shadow: 0 15px 70px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+
+    &.big-padding {
+        padding: 20px;
+    }
+}
+
+.btn {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.btn-primary {
+    color: white;
+
+    &:hover, &:active, &:focus, &.active {
+        color: white;
+        background-color: $highlight;
+        border-color: $highlight;
+    }
+
+    .dark & {
+        color: $dark-font-color2;
+    }
+}
+
+.btn-normal {
+    $bg-color: #F5F5F5;
+
+    background-color: $bg-color;
+    border-color: $bg-color;
+
+    &:hover {
+        $hover-color: darken($bg-color, 3%);
+        background-color: $hover-color;
+        border-color: $hover-color;
+    }
+}
+
+.btn-warning {
+    color: white;
+
+    &:hover, &:active, &:focus, &.active {
+        color: white;
+    }
+}
+
+.btn-info {
+    color: white;
+
+    &:hover, &:active, &:focus, &.active {
+        color: white;
+    }
+}
+
+.btn-dark {
+    background-color: #161B22;
+}
+
+// Dark Theme override here
+.dark {
+    background-color: #090c10;
+    color: $dark-font-color;
+
+    mark, .mark {
+        background-color: #b6ad86;
+    }
+
+    &::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb {
+        background: $dark-border-color;
+    }
+
+    .shadow-box {
+        &:not(.alert) {
+            background-color: $dark-bg;
+        }
+    }
+
+    .form-check-input {
+        background-color: $dark-bg2;
+        border-color: $dark-border-color;
+    }
+
+    .input-group-text {
+        background-color: #282f39;
+        border-color: $dark-border-color;
+        color: $dark-font-color;
+    }
+
+    .form-check-input:checked {
+        border-color: $primary; // Re-apply bootstrap border
+    }
+
+    .form-switch .form-check-input {
+        background-color: #232f3b;
+    }
+
+    a:not(.btn),
+    .table,
+    .nav-link {
+        color: $dark-font-color;
+
+        &.btn-info {
+            color: white;
+        }
+    }
+
+    .form-control,
+    .form-control:focus,
+    .form-select,
+    .form-select:focus {
+        color: $dark-font-color;
+        background-color: $dark-bg2;
+    }
+
+    .form-control, .form-select {
+        border-color: $dark-border-color;
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #232f3b;
+        opacity: 1;
+    }
+
+    .table-hover > tbody > tr:hover > * {
+        --bs-table-accent-bg: #070a10;
+        color: $dark-font-color;
+    }
+
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        color: $dark-font-color2;
+    }
+
+    .bg-primary {
+        color: $dark-font-color2;
+    }
+
+    .btn-secondary {
+        color: white;
+    }
+
+    .btn-normal {
+        $bg-color: $dark-header-bg;
+
+        color: $dark-font-color;
+        background-color: $bg-color;
+        border-color: $bg-color;
+
+        &:hover {
+            $hover-color: darken($bg-color, 3%);
+            background-color: $hover-color;
+            border-color: $hover-color;
+        }
+    }
+
+    .btn-warning {
+        color: $dark-font-color2;
+
+        &:hover, &:active, &:focus, &.active {
+            color: $dark-font-color2;
+        }
+    }
+
+    .btn-close {
+        box-shadow: none;
+        filter: invert(1);
+
+        &:hover {
+            opacity: 0.6;
+        }
+    }
+
+    .modal-header {
+        border-color: $dark-bg;
+    }
+
+    .modal-footer {
+        border-color: $dark-bg;
+    }
+
+    // Pagination
+    .page-item.disabled .page-link {
+        background-color: $dark-bg;
+        border-color: $dark-border-color;
+    }
+
+    .page-link {
+        background-color: $dark-bg;
+        border-color: $dark-border-color;
+        color: $dark-font-color;
+    }
+
+    .monitor-list {
+        .item {
+            &:hover {
+                background-color: $dark-bg2;
+            }
+
+            &.active {
+                background-color: $dark-bg2;
+            }
+        }
+    }
+
+    @media (max-width: 550px) {
+        .table-shadow-box {
+            tbody {
+                .shadow-box {
+                    background-color: $dark-bg2;
+
+                    td {
+                        border-bottom: 1px solid $dark-border-color;
+                    }
+                }
+            }
+        }
+    }
+
+    .alert {
+        &.bg-info,
+        &.bg-warning,
+        &.bg-danger,
+        &.bg-maintenance,
+        &.bg-light {
+            color: $dark-font-color2;
+        }
+    }
+
+}
+
+
+/*
+ * Transitions
+ */
+
+// page-change
+.slide-fade-enter-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-leave-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateY(50px);
+    opacity: 0;
+}
+
+.slide-fade-right-enter-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-right-leave-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-right-enter-from,
+.slide-fade-right-leave-to {
+    transform: translateX(50px);
+    opacity: 0;
+}
+
+.slide-fade-up-enter-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-up-leave-active {
+    transition: all 0.2s $easing-in;
+}
+
+.slide-fade-up-enter-from,
+.slide-fade-up-leave-to {
+    transform: translateY(-50px);
+    opacity: 0;
+}
+
+.monitor-list {
+    &.scrollbar {
+        overflow-y: auto;
+        height: calc(100% - 65px);
+    }
+
+    @media (max-width: 770px) {
+        &.scrollbar {
+            height: calc(100% - 40px);
+        }
+    }
+
+    .item {
+        display: block;
+        text-decoration: none;
+        padding: 13px 15px 10px 15px;
+        border-radius: 10px;
+        transition: all ease-in-out 0.15s;
+
+        &.disabled {
+            opacity: 0.3;
+        }
+
+        .info {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        &:hover {
+            background-color: $highlight-white;
+        }
+
+        &.active {
+            background-color: #cdf8f4;
+        }
+        .tags {
+            // Removes margin to line up tags list with uptime percentage
+            margin-left: -0.25rem;
+        }
+    }
+}
+
+
+.alert-success {
+    color: #122f21;
+    background-color: $primary;
+    border-color: $primary;
+}
+
+.alert-info {
+    color: #055160;
+    background-color: #cff4fc;
+    border-color: #cff4fc;
+}
+
+.alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f8d7da;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
+
+[contenteditable=true] {
+    transition: all $easing-in 0.2s;
+    background-color: rgba(239, 239, 239, 0.7);
+    border-radius: 8px;
+
+    &.no-bg {
+        background-color: transparent !important;
+    }
+
+    &:focus {
+        outline: 0 solid #eee;
+        background-color: rgba(245, 245, 245, 0.9);
+    }
+
+    &:hover {
+        background-color: rgba(239, 239, 239, 0.8);
+    }
+
+    .dark & {
+        background-color: rgba(239, 239, 239, 0.2);
+    }
+
+}

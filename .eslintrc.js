@@ -12,14 +12,14 @@ module.exports = {
         "eslint:recommended",
         "plugin:vue/vue3-recommended",
     ],
-    "parser": "@typescript-eslint/parser",
+    //"parser": "@typescript-eslint/parser",
     //parser: "@babel/eslint-parser",
-    // parser: "vue-eslint-parser",
-    /*parserOptions: {
-        parser: "@babel/eslint-parser",
+    parser: "vue-eslint-parser",
+    parserOptions: {
+        parser: "@typescript-eslint/parser",
         sourceType: "module",
         requireConfigFile: false,
-    },*/
+    },
     rules: {
         "yoda": "error",
         eqeqeq: [ "warn", "smart" ],
