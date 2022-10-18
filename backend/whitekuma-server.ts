@@ -1,4 +1,3 @@
-import { apiRouter } from "./routers/api-router";
 import express, { Express } from "express";
 import { Database } from "./database";
 import Cryptr from "cryptr";
@@ -6,7 +5,6 @@ import { Job } from "./job";
 import consoleStamp from "console-stamp";
 
 export class WhiteKumaServer {
-
     public version : string = "unknown";
     private static instance : WhiteKumaServer;
     private app : Express = express();
@@ -15,7 +13,7 @@ export class WhiteKumaServer {
 
     private port : number = 3011;
     private dataDir : string = "./data";
-    private db! : Database;
+    private _db! : Database;
     private _cryptr! : Cryptr;
     private jobList : Job[] = [];
 
@@ -50,8 +48,8 @@ export class WhiteKumaServer {
 
         console.debug("Adding API Router");
         this.app.use("/api", apiRouter);
-        this.db = await Database.createDB(this.dataDir);
-        this._cryptr = new Cryptr(this.db.data.secret);
+        this._db = await Database.createDB(this.dataDir);
+        this._cryptr = new Cryptr(this._db.data.secret);
 
         this.app.listen(this.port, () => {
             console.log(`⚡️Server is running at http://localhost:${this.port}`);
@@ -63,12 +61,12 @@ export class WhiteKumaServer {
     startJobs() {
         console.log("Prepare to Start All Jobs");
 
-        if (this.db.data.jobs.length === 0) {
+        if (this._db.data.jobs.length === 0) {
             console.log("No Jobs");
             return;
         }
 
-        let jobDataList = this.db.data.jobs;
+        let jobDataList = this._db.data.jobs;
 
         for (let jobData of jobDataList) {
             let job = new Job(jobData, this.dataDir);
@@ -87,4 +85,14 @@ export class WhiteKumaServer {
         return this._cryptr;
     }
 
+    get needSetup(): boolean {
+        return this._db.data.users.length <= 0;
+    }
+
+    get db(): Database {
+        return this._db;
+    }
+
 }
+
+import { apiRouter } from "./routers/api-router";

@@ -15,29 +15,16 @@
             </div>
         </div>
         <div class="monitor-list" :class="{ scrollbar: scrollbar }">
-            <div v-if="Object.keys($root.monitorList).length === 0" class="text-center mt-3">
-                {{ $t("No Monitors, please") }} <router-link to="/add">{{ $t("add one") }}</router-link>
+            <div v-if="Object.keys($root.jobList).length === 0" class="text-center mt-3">
+                {{ $t("No Task, please") }} <router-link to="/add">{{ $t("add one") }}</router-link>
             </div>
 
             <router-link v-for="(item, index) in sortedMonitorList" :key="index" :to="monitorURL(item.id)" class="item" :class="{ 'disabled': ! item.active }">
                 <div class="row">
-                    <div class="col-9 col-md-8 small-padding" :class="{ 'monitor-item': $root.userHeartbeatBar == 'bottom' || $root.userHeartbeatBar == 'none' }">
+                    <div class="col-9 col-md-8 small-padding">
                         <div class="info">
-                            <Uptime :monitor="item" type="24" :pill="true" />
                             {{ item.name }}
                         </div>
-                        <div class="tags">
-                            <Tag v-for="tag in item.tags" :key="tag" :item="tag" :size="'sm'" />
-                        </div>
-                    </div>
-                    <div v-show="$root.userHeartbeatBar == 'normal'" :key="$root.userHeartbeatBar" class="col-3 col-md-4">
-                        <HeartbeatBar size="small" :monitor-id="item.id" />
-                    </div>
-                </div>
-
-                <div v-if="$root.userHeartbeatBar == 'bottom'" class="row">
-                    <div class="col-12 bottom-style">
-                        <HeartbeatBar size="small" :monitor-id="item.id" />
                     </div>
                 </div>
             </router-link>
@@ -46,16 +33,10 @@
 </template>
 
 <script>
-import HeartbeatBar from "../components/HeartbeatBar.vue";
-import Tag from "../components/Tag.vue";
-import Uptime from "../components/Uptime.vue";
-import { getMonitorRelativeURL } from "../util.ts";
 
 export default {
     components: {
-        Uptime,
-        HeartbeatBar,
-        Tag,
+
     },
     props: {
         /** Should the scrollbar be shown */
@@ -89,7 +70,7 @@ export default {
         },
 
         sortedMonitorList() {
-            let result = Object.values(this.$root.monitorList);
+            let result = Object.values(this.$root.jobList);
 
             result.sort((m1, m2) => {
 
@@ -145,14 +126,7 @@ export default {
                 this.windowTop = 133;
             }
         },
-        /**
-         * Get URL of monitor
-         * @param {number} id ID of monitor
-         * @returns {string} Relative URL of monitor
-         */
-        monitorURL(id) {
-            return getMonitorRelativeURL(id);
-        },
+
         /** Clear the search bar */
         clearSearchText() {
             this.searchText = "";
@@ -214,19 +188,6 @@ export default {
 
 .monitor-item {
     width: 100%;
-}
-
-.tags {
-    margin-top: 4px;
-    padding-left: 67px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-}
-
-.bottom-style {
-    padding-left: 67px;
-    margin-top: 5px;
 }
 
 </style>

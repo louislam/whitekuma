@@ -13,16 +13,6 @@
                 </a>
 
                 <ul class="nav nav-pills">
-                    <li class="nav-item me-2">
-                        <router-link to="/manage-status-page" class="nav-link">
-                            <font-awesome-icon icon="stream" /> {{ $t("Status Pages") }}
-                        </router-link>
-                    </li>
-                    <li class="nav-item me-2">
-                        <router-link to="/dashboard" class="nav-link">
-                            <font-awesome-icon icon="tachometer-alt" /> {{ $t("Dashboard") }}
-                        </router-link>
-                    </li>
                     <li class="nav-item">
                         <div class="dropdown dropdown-profile-pic">
                             <div class="nav-link" data-bs-toggle="dropdown">
@@ -68,65 +58,53 @@
             </div>
         </header>
 
-        <!-- Mobile header -->
-        <header v-else class="d-flex flex-wrap justify-content-center pt-2 pb-2 mb-3">
-            <router-link to="/dashboard" class="d-flex align-items-center text-dark text-decoration-none">
-                <object class="bi" width="40" height="40" data="/icon.svg" />
-                <span class="fs-4 title ms-2">Uptime Kuma</span>
-            </router-link>
-        </header>
-
         <main>
             <div class="container-fluid">
                 <div class="row">
-                    <div v-if="!$root.isMobile" class="col-12 col-md-5 col-xl-4">
+                    <div v-if="$root.loggedIn" class="col-12 col-md-5 col-xl-4">
                         <div>
                             <router-link to="/add" class="btn btn-primary mb-3"><font-awesome-icon icon="plus" /> {{ $t("Add Task") }}</router-link>
                         </div>
-                        <MonitorList :scrollbar="true" />
+                        <JobList :scrollbar="true" />
                     </div>
 
-                    <div class="col-12 col-md-7 col-xl-8 mb-3">
+                    <div :class="containerClass">
                         <!-- Add :key to disable vue router re-use the same component -->
                         <router-view :key="$route.fullPath" />
                     </div>
                 </div>
             </div>
         </main>
-
-        <!-- Mobile Only -->
-        <div v-if="$root.isMobile" style="width: 100%; height: 60px;" />
-        <nav v-if="$root.isMobile && $root.loggedIn" class="bottom-nav">
-            <router-link to="/dashboard" class="nav-link">
-                <div><font-awesome-icon icon="tachometer-alt" /></div>
-                {{ $t("Dashboard") }}
-            </router-link>
-
-            <router-link to="/list" class="nav-link">
-                <div><font-awesome-icon icon="list" /></div>
-                {{ $t("List") }}
-            </router-link>
-
-            <router-link to="/add" class="nav-link">
-                <div><font-awesome-icon icon="plus" /></div>
-                {{ $t("Add") }}
-            </router-link>
-
-            <router-link to="/settings" class="nav-link">
-                <div><font-awesome-icon icon="cog" /></div>
-                {{ $t("Settings") }}
-            </router-link>
-        </nav>
     </div>
 </template>
 
 <script lang="ts">
+import JobList from "./components/JobList.vue";
+
 export default {
+
+    components: {
+        JobList
+    },
+
     data() {
         return {};
     },
 
     computed: {
+
+        containerClass() {
+            if (!this.$root.loggedIn) {
+                return {};
+            } else {
+                return {
+                    "col-12": true,
+                    "col-md-7": true,
+                    "col-xl-8": true,
+                    "mb-3": true,
+                };
+            }
+        },
 
         // Theme or Mobile
         classes() {
@@ -143,7 +121,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/vars.scss";
+@import "assets/vars.scss";
 
 //d-flex flex-wrap justify-content-center
 .header {
@@ -161,8 +139,7 @@ export default {
         align-items: center;
 
         .nav {
-            margin-right: 25px;
-            padding-left: 10px;
+            padding-left: 0;
         }
     }
 

@@ -6,11 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
     faArrowAltCircleUp,
     faAngleDown,
+    faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
     faArrowAltCircleUp,
     faAngleDown,
+    faPlus,
 );
 
 export { FontAwesomeIcon };

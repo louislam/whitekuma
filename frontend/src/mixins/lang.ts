@@ -1,5 +1,6 @@
 import { currentLocale } from "../i18n";
-const langModules = import.meta.glob("../languages/*.js");
+// @ts-ignore
+const langModules = import.meta.glob("../languages/*.ts");
 
 export default {
     data() {

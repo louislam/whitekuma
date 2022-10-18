@@ -20,7 +20,8 @@ export class Database {
         if (!lowDB.data) {
             lowDB.data = {
                 secret: "",
-                jobs: []
+                jobs: [],
+                users: [],
             };
             await lowDB.write();
         }
@@ -66,9 +67,15 @@ export type JobData = {
     customExecutable: string;
 }
 
+export type User = {
+    username: string;
+    password: string;
+}
+
 export type Data = {
     secret: string;
     jobs: JobData[];
+    users: User[];
 }
 
 /**

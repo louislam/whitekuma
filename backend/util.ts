@@ -1,5 +1,6 @@
-const path = require("path");
-const { readdir, stat } = require("fs/promises");
+import path from "path";
+import { readdir, stat } from "fs/promises";
+import type { Response } from "express";
 
 export function sb(text : string) {
     return `[${text}]`;
