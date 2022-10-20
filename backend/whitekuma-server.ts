@@ -93,6 +93,11 @@ export class WhiteKumaServer {
         return this._db;
     }
 
+    getJob(id : number) : Job | undefined {
+        return this.jobList.find((job) => {
+            return job.jobData.id === id;
+        });
+    }
 }
 
 import { apiRouter } from "./routers/api-router";

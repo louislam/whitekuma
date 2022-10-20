@@ -2,41 +2,28 @@ import { Method } from "./method";
 import childProcess from "child_process";
 import * as fs from "fs";
 import path from "path";
-import { dirSize, sb, sleep } from "../util";
+import { BackupInfoJSON, dirSize, sb, sleep } from "../util";
 import { WhiteKumaServer } from "../whitekuma-server";
+import * as os from "os";
 
 export class MariaBackupMethod extends Method {
 
     async backup() {
         const baseBackup = path.join(this.baseDir, "base");
-        const tempBaseDir = path.join(this.baseDir, "temp");
-
-        // Remove Temp Dir
-        if (fs.existsSync(tempBaseDir)) {
-            fs.rmSync(tempBaseDir, {
-                recursive: true,
-                force: true
-            });
-        }
-        fs.mkdirSync(tempBaseDir, { recursive: true });
 
         if (!fs.existsSync(baseBackup)) {
-
-            await this.createBaseBackup(baseBackup, tempBaseDir);
+            await this.createBaseBackup(baseBackup);
         } else {
-            await this.createIncrementalBackup(tempBaseDir);
+            await this.createIncrementalBackup();
         }
 
     }
 
-    async createBaseBackup(baseBackup : string, tempBaseDir : string) {
-        const tempBaseBackup = path.join(tempBaseDir, "base");
-        await this.createBackup(baseBackup, tempBaseBackup);
+    async createBaseBackup(baseBackup : string) {
+        await this.createBackup(baseBackup);
     }
 
-    async createIncrementalBackup(tempBaseDir : string) {
-        const previousBackupDir = path.join(this.baseDir, this.getLastBackupName());
-
+    async createIncrementalBackup() {
         let dirName;
         let finalDir;
 
@@ -52,9 +39,7 @@ export class MariaBackupMethod extends Method {
             }
         }
 
-        const tempDir = path.join(tempBaseDir, dirName);
-
-        await this.createBackup(finalDir, tempDir, previousBackupDir);
+        await this.createBackup(finalDir, this.getLastBackupName());
     }
 
     getLastBackupName() : string {
@@ -69,7 +54,13 @@ export class MariaBackupMethod extends Method {
             // Is `base` and number only
             return item.isDirectory() && (item.name === "base" || !isNaN(parseInt(item.name)));
         }).sort((a, b) => {
-            // Luckily, `base` is the first element.
+            // Put `base` in the first
+            if (a.name === "base") {
+                return -1;
+            }
+            if (b.name === "base") {
+                return 1;
+            }
             return parseInt(a.name) - parseInt(b.name);
         });
 
@@ -79,7 +70,14 @@ export class MariaBackupMethod extends Method {
         return list;
     }
 
-    private async createBackup(finalDir : string, tempDir : string, previousBackupDir : string | null = null) {
+    private async createBackup(finalDir : string, previousBackupName : string | null = null) {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_"));
+        let previousBackupDir : string | null = null;
+
+        if (previousBackupName) {
+            previousBackupDir = path.join(this.baseDir, previousBackupName);
+        }
+
         let server = WhiteKumaServer.getInstance();
 
         console.log(sb(this.job.jobData.name), "finalDir: " + finalDir);
@@ -122,11 +120,26 @@ export class MariaBackupMethod extends Method {
             });
         });
 
-        fs.writeFileSync(path.join(tempDir, "info.json"), JSON.stringify({
+        let size = await dirSize(tempDir);
+        let totalSize : number;
+
+        if (previousBackupDir) {
+            const previousInfoPath = path.join(previousBackupDir, "info.json");
+            let previousInfo : BackupInfoJSON = JSON.parse(fs.readFileSync(previousInfoPath, "utf-8"));
+            totalSize = previousInfo.totalSize + size;
+        } else {
+            totalSize = size;
+        }
+
+        let info : BackupInfoJSON = {
             date: new Date().toJSON(),
-            size: await dirSize(tempDir),
-            previous: previousBackupDir,
-        }));
+            size,
+            totalSize,
+            previousBackupName: previousBackupName,
+            previousBackupDir: previousBackupDir,
+        };
+
+        fs.writeFileSync(path.join(tempDir, "info.json"), JSON.stringify(info));
         fs.renameSync(tempDir, finalDir);
     }
 

@@ -1,6 +1,6 @@
 import path from "path";
 import { readdir, stat } from "fs/promises";
-import type { Response } from "express";
+import { JobData, User } from "./database";
 
 export function sb(text : string) {
     return `[${text}]`;
@@ -20,4 +20,12 @@ export async function dirSize(directory : string) {
 
 export function sleep(ms : number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export type BackupInfoJSON = {
+    date: string;
+    size: number;
+    totalSize: number;
+    previousBackupName: string | null,
+    previousBackupDir: string | null;
 }

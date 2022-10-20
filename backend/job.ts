@@ -23,22 +23,31 @@ export class Job {
 
     start() {
         this.cron = Cron(this._jobData.cron, async () => {
-            if (this.running) {
-                return;
-            }
-
-            console.log(sb(this._jobData.name), "Creating Backup...");
-            try {
-                this.running = true;
-                await this.method.backup();
-                console.log(sb(this._jobData.name), "Backup done");
-            } catch (e) {
-                console.log(sb(this._jobData.name), "Backup failed");
-                console.error(sb(this._jobData.name), e);
-            }
-            this.running = false;
+            await this.backupNow();
         });
         console.log(sb(this._jobData.name), "Job Started");
+    }
+
+    async backupNow(throwError = false) {
+        if (this.running) {
+            console.log(sb(this._jobData.name), "Already Running. Skip.");
+            return;
+        }
+
+        console.log(sb(this._jobData.name), "Creating Backup...");
+        try {
+            this.running = true;
+            await this.method.backup();
+            this.running = false;
+            console.log(sb(this._jobData.name), "Backup done");
+        } catch (e) {
+            console.log(sb(this._jobData.name), "Backup failed");
+            console.error(sb(this._jobData.name), e);
+            this.running = false;
+            if (throwError) {
+                throw e;
+            }
+        }
     }
 
     stop() {

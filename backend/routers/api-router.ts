@@ -91,12 +91,42 @@ apiRouter.get("/job/:id/resume", (request, response) => {
 });
 
 // Trigger Backup now
-apiRouter.get("/job/:id/backup-now", (request, response) => {
+apiRouter.get("/job/:id/backup-now", async (request, response) => {
+    const job = server.getJob(parseInt(request.params.id));
+
+    try {
+        if (!job) {
+            throw new Error("Job not found");
+        }
+        console.log("Manual Backup");
+        await job.backupNow(true);
+        response.json({
+            ok: true,
+        });
+    } catch (e) {
+        if (e instanceof Error) {
+            response.status(400);
+            response.json({
+                ok: false,
+                msg: e.message,
+            });
+        }
+    }
 
 });
 
+// Download Backup
+apiRouter.get("/job/:id/download/:backupName", (req, res) => {
+    const enableGzip = req.body.enableGzip;
+});
+
+// Download Backup
+apiRouter.get("/job/:id/restore/:backupName", (req, res) => {
+    const targetDirectory = req.body.targetDirectory;
+});
+
 // Create or Update a Job
-apiRouter.post("/job", (request, response) => {
+apiRouter.post("/job/:id", (request, response) => {
 
 });
 
