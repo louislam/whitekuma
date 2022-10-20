@@ -8,7 +8,8 @@ import { sb } from "./util";
 export class Job {
     private readonly _jobData : JobData;
     private method : Method;
-    private running : boolean = false;
+    private runningBackup : boolean = false;
+    private runningRestore: boolean = false;
     private cron : Cron;
 
     constructor(jobData : JobData, dataDir : string) {
@@ -19,42 +20,83 @@ export class Job {
         } else {
             throw new Error("Unknown Job Type");
         }
+
+        this.cron = new Cron(this._jobData.cron);
+
+        // The job will not start here
+        this.cron.stop();
+
+        console.debug(sb(this._jobData.name), "Is running after new: " + this.cron.running());
+        this.cron.schedule(async () => {
+            await this.backupNow();
+        });
+        console.debug(sb(this._jobData.name), "Is running after scheduled: " + this.cron.running());
     }
 
     start() {
-        this.cron = Cron(this._jobData.cron, async () => {
-            await this.backupNow();
-        });
+        if (this.cron.running()) {
+            console.log(sb(this._jobData.name), "Job Already Started");
+            return;
+        }
+
+        this.cron.resume();
+
         console.log(sb(this._jobData.name), "Job Started");
     }
 
     async backupNow(throwError = false) {
-        if (this.running) {
-            console.log(sb(this._jobData.name), "Already Running. Skip.");
+        if (this.runningBackupOrRestore) {
+            console.log(sb(this._jobData.name), "Already Running Backup or Restore. Skip.");
             return;
         }
 
         console.log(sb(this._jobData.name), "Creating Backup...");
         try {
-            this.running = true;
+            this.runningBackup = true;
             await this.method.backup();
-            this.running = false;
+            this.runningBackup = false;
             console.log(sb(this._jobData.name), "Backup done");
         } catch (e) {
             console.log(sb(this._jobData.name), "Backup failed");
             console.error(sb(this._jobData.name), e);
-            this.running = false;
+            this.runningBackup = false;
             if (throwError) {
                 throw e;
             }
         }
     }
 
+    async restore(backupName : string) {
+        if (this.runningBackupOrRestore) {
+            let errorMsg = "Running Backup or Restore currently, please try again later.";
+            console.log(sb(this._jobData.name), errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        try {
+            this.runningRestore = true;
+            await this.method.restore(backupName);
+            this.runningRestore = false;
+            console.log(sb(this._jobData.name), "Restore done");
+        } catch (e) {
+            console.log(sb(this._jobData.name), "Restore failed");
+            console.error(sb(this._jobData.name), e);
+            this.runningRestore = false;
+            throw e;
+        }
+    }
+
     stop() {
         console.log(sb(this._jobData.name), "Stop Job");
+        this.cron.stop();
     }
 
     get jobData(): JobData {
         return this._jobData;
     }
+
+    get runningBackupOrRestore() : boolean {
+        return this.runningBackup || this.runningRestore;
+    }
+
 }

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import SseStream from "ssestream";
 import { WhiteKumaServer } from "../whitekuma-server";
 import { passwordStrength } from "check-password-strength";
@@ -81,48 +81,74 @@ apiRouter.get("/job/:id", (request, response) => {
 });
 
 // Pause a Job
-apiRouter.get("/job/:id/pause", (request, response) => {
-
+apiRouter.get("/job/:id/pause", (req, res) => {
+    try {
+        const job = server.getJob(parseInt(req.params.id));
+        job.stop();
+        res.json({
+            ok: true,
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
 // Resume a Job
-apiRouter.get("/job/:id/resume", (request, response) => {
-
+apiRouter.get("/job/:id/resume", (req, res) => {
+    try {
+        const job = server.getJob(parseInt(req.params.id));
+        job.start();
+        res.json({
+            ok: true,
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
 // Trigger Backup now
-apiRouter.get("/job/:id/backup-now", async (request, response) => {
-    const job = server.getJob(parseInt(request.params.id));
-
+apiRouter.get("/job/:id/backup-now", async (req, res) => {
     try {
+        const job = server.getJob(parseInt(req.params.id));
+
         if (!job) {
             throw new Error("Job not found");
         }
         console.log("Manual Backup");
         await job.backupNow(true);
-        response.json({
+        res.json({
             ok: true,
         });
     } catch (e) {
-        if (e instanceof Error) {
-            response.status(400);
-            response.json({
-                ok: false,
-                msg: e.message,
-            });
-        }
+        responseError(res, e);
     }
-
 });
 
 // Download Backup
 apiRouter.get("/job/:id/download/:backupName", (req, res) => {
-    const enableGzip = req.body.enableGzip;
+    try {
+        const job = server.getJob(parseInt(req.params.id));
+
+        // TODO Check free space
+
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
-// Download Backup
+// Restore Backup
 apiRouter.get("/job/:id/restore/:backupName", (req, res) => {
-    const targetDirectory = req.body.targetDirectory;
+    try {
+        const job = server.getJob(parseInt(req.params.id));
+
+        // TODO Check free space
+
+        job.restore();
+
+    } catch (e) {
+        responseError(res, e);
+    }
+
 });
 
 // Create or Update a Job
@@ -154,3 +180,13 @@ apiRouter.get("/sse", (req, res) => {
         sseStream.unpipe(res);
     });
 });
+
+function responseError(response : Response, e : unknown) {
+    if (e instanceof Error) {
+        response.status(400);
+        response.json({
+            ok: false,
+            msg: e.message,
+        });
+    }
+}

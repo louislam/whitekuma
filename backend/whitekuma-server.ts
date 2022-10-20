@@ -93,10 +93,14 @@ export class WhiteKumaServer {
         return this._db;
     }
 
-    getJob(id : number) : Job | undefined {
-        return this.jobList.find((job) => {
+    getJob(id : number) : Job {
+        let job = this.jobList.find((job) => {
             return job.jobData.id === id;
         });
+        if (!job) {
+            throw new Error("Job not found");
+        }
+        return job;
     }
 }
 

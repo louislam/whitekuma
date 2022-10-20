@@ -16,7 +16,7 @@ export abstract class Method {
     }
 
     abstract backup(): Promise<void>;
-    abstract restore(): Promise<void>;
+    abstract restore(backupName : string): Promise<void>;
 
     get baseDir(): string {
         if (this.job.jobData.storagePath) {

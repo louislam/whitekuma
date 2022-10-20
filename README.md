@@ -12,4 +12,4 @@ An easy-to-use MariaDB incremental backup tool.
 
 ## Reference
 
-https://backup.ninja/news/mariadb-backups-what-is-mariabackup
+- https://backup.ninja/news/mariadb-backups-what-is-mariabackup

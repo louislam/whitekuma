@@ -2,7 +2,7 @@ import { Method } from "./method";
 import childProcess from "child_process";
 import * as fs from "fs";
 import path from "path";
-import { BackupInfoJSON, dirSize, sb, sleep } from "../util";
+import { BackupInfoJSON, dirSize, readJSON, sb, sleep } from "../util";
 import { WhiteKumaServer } from "../whitekuma-server";
 import * as os from "os";
 
@@ -71,7 +71,7 @@ export class MariaBackupMethod extends Method {
     }
 
     private async createBackup(finalDir : string, previousBackupName : string | null = null) {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_"));
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_temp_backup_"));
         let previousBackupDir : string | null = null;
 
         if (previousBackupName) {
@@ -125,7 +125,7 @@ export class MariaBackupMethod extends Method {
 
         if (previousBackupDir) {
             const previousInfoPath = path.join(previousBackupDir, "info.json");
-            let previousInfo : BackupInfoJSON = JSON.parse(fs.readFileSync(previousInfoPath, "utf-8"));
+            let previousInfo : BackupInfoJSON = readJSON<BackupInfoJSON>(previousInfoPath);
             totalSize = previousInfo.totalSize + size;
         } else {
             totalSize = size;
@@ -143,8 +143,39 @@ export class MariaBackupMethod extends Method {
         fs.renameSync(tempDir, finalDir);
     }
 
-    async restore() {
+    async restore(backupName : string) {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_temp_restore_"));
 
+        const stack : BackupInfoJSON[] = [];
+
+        let currentBackupName = backupName;
+
+        // From selected backup down to the `base`
+        while (true) {
+            let info = readJSON<BackupInfoJSON>(path.join(this.baseDir, currentBackupName, "info.json"));
+            stack.push(info);
+            if (info.previousBackupName) {
+                currentBackupName = info.previousBackupName;
+            } else {
+                break;
+            }
+        }
+
+        // Start from base
+        while (true) {
+            let info = stack.pop();
+
+            if (!info) {
+                break;
+            }
+
+            // For base
+            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/
+
+            // For others
+            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/ --incremental-dir=/tmp/mariadb/backup/increment/
+            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/ --incremental-dir=/tmp/mariadb/backup/incrementNew/
+        }
     }
 
     get executable() {
