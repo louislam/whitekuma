@@ -4,7 +4,7 @@ import { WhiteKumaServer } from "../whitekuma-server";
 import { passwordStrength } from "check-password-strength";
 import cors from "cors";
 import { verify, hash } from "../password-hash";
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 const server = WhiteKumaServer.getInstance();
 
@@ -98,8 +98,16 @@ apiRouter.post("/login", (req, res) => {
 });
 
 // Job List
-apiRouter.get("/jobs", (request, response) => {
-
+apiRouter.get("/job-list", (req, res) => {
+    try {
+        server.checkLogin(req);
+        res.json({
+            jobList: server.db.data.jobs,
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
+    server.checkLogin(req);
 });
 
 // Get a Job

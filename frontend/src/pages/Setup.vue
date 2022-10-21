@@ -64,7 +64,7 @@ export default {
             localStorage.locale = this.$i18n.locale;
         },
     },
-    async beforeCreate() {
+    async create() {
         const needSetup : boolean = (await axios.get("/api/need-setup")).data;
         if (!needSetup) {
             this.$router.push("/");

@@ -1,9 +1,10 @@
-import express, { Express } from "express";
+import express, { Express, Request } from "express";
 import { Database } from "./database";
 import Cryptr from "cryptr";
 import { Job } from "./job";
 import consoleStamp from "console-stamp";
 import expressStaticGzip from "express-static-gzip";
+import jwt from "jsonwebtoken";
 
 export class WhiteKumaServer {
     public version : string = "unknown";
@@ -136,6 +137,37 @@ export class WhiteKumaServer {
     get secret() {
         return this._secret;
     }
+
+    checkLogin(req : Request) {
+        const auth = req.headers.authorization;
+
+        if (!auth) {
+            throw new Error("Not Logged In");
+        }
+
+        let split = auth.split(" ");
+
+        if (split.length <= 1) {
+            throw new Error("Not Logged In");
+        }
+
+        let token = split[1];
+
+        let decoded = jwt.verify(token, this.secret) as {
+            username: string;
+        };
+
+        console.debug("Username from JWT: " + decoded.username);
+
+        let user = this._db.data.users.find((user) => {
+            return user.username === decoded.username;
+        });
+
+        if (!user) {
+            throw new Error("Not Logged In");
+        }
+    }
+
 }
 
 import { apiRouter } from "./routers/api-router";

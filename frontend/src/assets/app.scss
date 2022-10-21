@@ -270,18 +270,6 @@ optgroup {
         color: $dark-font-color;
     }
 
-    .monitor-list {
-        .item {
-            &:hover {
-                background-color: $dark-bg2;
-            }
-
-            &.active {
-                background-color: $dark-bg2;
-            }
-        }
-    }
-
     @media (max-width: 550px) {
         .table-shadow-box {
             tbody {
@@ -355,49 +343,6 @@ optgroup {
     transform: translateY(-50px);
     opacity: 0;
 }
-
-.monitor-list {
-    &.scrollbar {
-        overflow-y: auto;
-        height: calc(100% - 65px);
-    }
-
-    @media (max-width: 770px) {
-        &.scrollbar {
-            height: calc(100% - 40px);
-        }
-    }
-
-    .item {
-        display: block;
-        text-decoration: none;
-        padding: 13px 15px 10px 15px;
-        border-radius: 10px;
-        transition: all ease-in-out 0.15s;
-
-        &.disabled {
-            opacity: 0.3;
-        }
-
-        .info {
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        &:hover {
-            background-color: $highlight-white;
-        }
-
-        &.active {
-            background-color: #cdf8f4;
-        }
-        .tags {
-            // Removes margin to line up tags list with uptime percentage
-            margin-left: -0.25rem;
-        }
-    }
-}
-
 
 .alert-success {
     color: #122f21;

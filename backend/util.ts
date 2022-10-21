@@ -2,6 +2,7 @@ import path from "path";
 import { readdir, stat } from "fs/promises";
 import { JobData, User } from "./database";
 import fs from "fs";
+import { Request } from "express";
 
 export function sb(text : string) {
     return `[${text}]`;
@@ -35,3 +36,4 @@ export type BackupInfoJSON = {
 export function readJSON<T>(path: string) : T {
     return JSON.parse(fs.readFileSync(path, "utf-8"));
 }
+

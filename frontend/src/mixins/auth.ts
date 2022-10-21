@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export default {
 
     data() {
@@ -5,6 +7,16 @@ export default {
             username: null,
             remember: (localStorage.remember !== "0"),
         };
+    },
+
+    beforeCreate() {
+        axios.interceptors.request.use((config) => {
+            const token = this.$root.storage().token;
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
     },
 
     created() {

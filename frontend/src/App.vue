@@ -4,7 +4,9 @@
         <header v-if="! $root.isMobile" class="header py-3 mb-3 border-bottom">
             <router-link to="/" class="title-link">
                 <object class="logo" width="40" height="40" data="/icon.svg" />
-                <span class="fs-4 title">WhiteKuma</span>
+                <div>
+                    <span class="fs-4 title">WhiteKuma</span> <span class="subtitle">MariaDB Backup Tool</span>
+                </div>
             </router-link>
 
             <div v-if="$root.username != null" class="right">
@@ -285,11 +287,18 @@ main {
         span {
             color: #f0f6fc;
         }
+
+        .subtitle {
+            font-size: 13px;
+            margin-left: 6px;
+            color: #AAA;
+        }
     }
 
     .bottom-nav {
         background-color: $dark-bg;
     }
 }
+
 </style>
 

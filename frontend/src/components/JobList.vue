@@ -14,25 +14,21 @@
                 </form>
             </div>
         </div>
-        <div class="monitor-list" :class="{ scrollbar: scrollbar }">
-            <div v-if="Object.keys($root.jobList).length === 0" class="text-center mt-3">
+        <div class="job-list" :class="{ scrollbar: scrollbar }">
+            <div v-if="jobList.length === 0 && loaded" class="text-center mt-3">
                 {{ $t("No Task, please") }} <router-link to="/add">{{ $t("add one") }}</router-link>
             </div>
 
-            <router-link v-for="(item, index) in sortedMonitorList" :key="index" :to="monitorURL(item.id)" class="item" :class="{ 'disabled': ! item.active }">
-                <div class="row">
-                    <div class="col-9 col-md-8 small-padding">
-                        <div class="info">
-                            {{ item.name }}
-                        </div>
-                    </div>
-                </div>
+            <router-link v-for="(job, index) in jobList" :key="index" :to="'/job/' + job.id" class="item" :class="{ 'disabled': ! job.active }">
+                <div>{{ job.name }}</div>
             </router-link>
         </div>
     </div>
 </template>
 
 <script>
+
+import axios from "axios";
 
 export default {
     components: {
@@ -48,6 +44,8 @@ export default {
         return {
             searchText: "",
             windowTop: 0,
+            jobList: [],
+            loaded: false,
         };
     },
     computed: {
@@ -69,8 +67,8 @@ export default {
 
         },
 
-        sortedMonitorList() {
-            let result = Object.values(this.$root.jobList);
+        sortedJobList() {
+            let result = this.jobList;
 
             result.sort((m1, m2) => {
 
@@ -111,8 +109,18 @@ export default {
             return result;
         },
     },
-    mounted() {
+    async mounted() {
         window.addEventListener("scroll", this.onScroll);
+
+        try {
+            const res = await axios.get("/api/job-list");
+            this.jobList = res.data.jobList;
+        } catch (e) {
+            this.$root.showError(e);
+        }
+
+        this.loaded = true;
+
     },
     beforeUnmount() {
         window.removeEventListener("scroll", this.onScroll);
@@ -137,6 +145,50 @@ export default {
 
 <style lang="scss" scoped>
 @import "../assets/vars.scss";
+
+.job-list {
+    &.scrollbar {
+        overflow-y: auto;
+        height: calc(100% - 65px);
+    }
+
+    @media (max-width: 770px) {
+        &.scrollbar {
+            height: calc(100% - 40px);
+        }
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        height: 50px;
+        text-decoration: none;
+        padding: 13px 15px 10px 15px;
+        border-radius: 10px;
+        transition: all ease-in-out 0.15s;
+
+        &.disabled {
+            opacity: 0.3;
+        }
+
+        .info {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        &:hover {
+            background-color: $highlight-white;
+        }
+
+        &.active {
+            background-color: #cdf8f4;
+        }
+        .tags {
+            // Removes margin to line up tags list with uptime percentage
+            margin-left: -0.25rem;
+        }
+    }
+}
 
 .shadow-box {
     height: calc(100vh - 150px);
@@ -186,8 +238,18 @@ export default {
     max-width: 15em;
 }
 
-.monitor-item {
-    width: 100%;
+.dark {
+    .job-list {
+        .item {
+            &:hover {
+                background-color: $dark-bg2;
+            }
+
+            &.active {
+                background-color: $dark-bg2;
+            }
+        }
+    }
 }
 
 </style>

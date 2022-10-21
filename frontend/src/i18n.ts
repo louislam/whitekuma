@@ -1,4 +1,5 @@
 import { createI18n } from "vue-i18n/dist/vue-i18n.esm-browser.prod.js";
+// @ts-ignore
 import en from "./languages/en.json";
 
 const languageList = {
