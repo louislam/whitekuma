@@ -26,7 +26,7 @@ export class Database {
             await lowDB.write();
         }
 
-        if (!lowDB.data.secret) {
+        if (!lowDB.data.secret && !process.env.WK_SECRET) {
             lowDB.data.secret = crypto.randomBytes(32).toString("hex");
             await lowDB.write();
         }

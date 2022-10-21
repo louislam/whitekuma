@@ -3,6 +3,8 @@ import SseStream from "ssestream";
 import { WhiteKumaServer } from "../whitekuma-server";
 import { passwordStrength } from "check-password-strength";
 import cors from "cors";
+import { verify, hash } from "../password-hash";
+const jwt = require("jsonwebtoken");
 
 const server = WhiteKumaServer.getInstance();
 
@@ -49,25 +51,50 @@ apiRouter.post("/setup", async (request, response) => {
 
         server.db.data.users.push({
             username,
-            password: server.cryptr.encrypt(password),
+            password: hash(password),
         });
 
         await server.db.write();
 
-        response.json({
-            ok: true,
-        });
+        response.json({ });
 
     } catch (e) {
-        console.error(e);
-        if (e instanceof Error) {
-            response.status(400);
-            response.json({
-                ok: false,
-                msg: e.message,
-            });
-        }
+        responseError(response, e);
     }
+});
+
+// Login
+apiRouter.post("/login", (req, res) => {
+    let errorMsg = "Invalid Username or Password";
+
+    try {
+        const username = req.body.username;
+        const password = req.body.password;
+
+        if (typeof username !== "string" || typeof password !== "string") {
+            throw new Error(errorMsg);
+        }
+
+        let user = server.db.data.users.find((user) => {
+            return user.username === username;
+        });
+
+        if (user && verify(password, user.password)) {
+            res.json({
+                username,
+                token: jwt.sign({
+                    username: username,
+                }, server.secret),
+            });
+        } else {
+            throw new Error(errorMsg);
+        }
+
+    } catch (e) {
+        responseError(res, e);
+    }
+
+    return null;
 });
 
 // Job List
@@ -81,7 +108,6 @@ apiRouter.get("/job/:id", (req, res) => {
         const job = server.getJob(parseInt(req.params.id));
 
         res.json({
-            ok: true,
             job: job.jobData,
         });
     } catch (e) {
@@ -94,9 +120,7 @@ apiRouter.get("/job/:id/pause", (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
         job.stop();
-        res.json({
-            ok: true,
-        });
+        res.json({ });
     } catch (e) {
         responseError(res, e);
     }
@@ -107,9 +131,7 @@ apiRouter.get("/job/:id/resume", (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
         job.start();
-        res.json({
-            ok: true,
-        });
+        res.json({ });
     } catch (e) {
         responseError(res, e);
     }
@@ -126,7 +148,7 @@ apiRouter.get("/job/:id/backup-now", async (req, res) => {
         console.log("Manual Backup");
         await job.backupNow(true);
         res.json({
-            ok: true,
+
         });
     } catch (e) {
         responseError(res, e);
@@ -149,7 +171,6 @@ apiRouter.get("/job/:id/restore/:backupName", async (req, res) => {
         const job = server.getJob(parseInt(req.params.id));
         const dir = await job.restore(req.params.backupName);
         res.json({
-            ok: true,
             outputDir: dir,
         });
     } catch (e) {
@@ -167,9 +188,7 @@ apiRouter.delete("/job/:id", async (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
         await job.delete();
-        res.json({
-            ok: true,
-        });
+        res.json({ });
     } catch (e) {
         responseError(res, e);
     }
@@ -199,7 +218,6 @@ function responseError(response : Response, e : unknown) {
     if (e instanceof Error) {
         response.status(400);
         response.json({
-            ok: false,
             msg: e.message,
         });
     }

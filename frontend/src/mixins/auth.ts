@@ -8,6 +8,7 @@ export default {
     },
 
     created() {
+        this.username = this.$root.storage().username;
         this.checkLogin();
     },
 
@@ -21,12 +22,18 @@ export default {
             }
         },
 
+        logout() {
+            this.storage().removeItem("token");
+            this.username = null;
+            this.$router.push("/login");
+        },
+
     },
 
     computed: {
 
         loggedIn() {
-            return !!this.storage().token;
+            return !!this.username;
         },
 
         usernameFirstChar() {

@@ -3,19 +3,22 @@ import { Database } from "./database";
 import Cryptr from "cryptr";
 import { Job } from "./job";
 import consoleStamp from "console-stamp";
+import expressStaticGzip from "express-static-gzip";
 
 export class WhiteKumaServer {
     public version : string = "unknown";
     private static instance : WhiteKumaServer;
     private app : Express = express();
 
-    readonly ENV_PREFIX = "WK_";
-
     private port : number = 3011;
     private dataDir : string = "./data";
     private _db! : Database;
     private _cryptr! : Cryptr;
     private jobList : Job[] = [];
+
+    private indexHTML : string = "";
+
+    private _secret! : string;
 
     static getInstance() : WhiteKumaServer {
         if (!this.instance) {
@@ -46,13 +49,37 @@ export class WhiteKumaServer {
             this.version = process.env.npm_package_version;
         }
 
+        try {
+            this.indexHTML = fs.readFileSync("./dist/index.html").toString();
+        } catch (e) {
+            // "dist/index.html" is not necessary for development
+            if (process.env.NODE_ENV !== "development") {
+                console.error("Error: Cannot find 'dist/index.html', did you install correctly?");
+                process.exit(1);
+            }
+        }
+
         console.debug("Adding API Router");
+
         this.app.use("/", expressStaticGzip("dist", {
             enableBrotli: true,
         }));
+
         this.app.use("/api", apiRouter);
+
+        // Universal Route Handler, must be at the end of all express routes.
+        this.app.get("*", async (req, res) => {
+            if (req.originalUrl.startsWith("/upload/")) {
+                res.status(404).send("File not found.");
+            } else {
+                res.send(this.indexHTML);
+            }
+        });
+
         this._db = await Database.createDB(this.dataDir);
-        this._cryptr = new Cryptr(this._db.data.secret);
+
+        this._secret = process.env.WK_SECRET || this._db.data.secret;
+        this._cryptr = new Cryptr(this._secret);
 
         this.app.listen(this.port, () => {
             console.log(`⚡️Server is running at http://localhost:${this.port}`);
@@ -105,6 +132,12 @@ export class WhiteKumaServer {
         }
         return job;
     }
+
+    get secret() {
+        return this._secret;
+    }
 }
 
 import { apiRouter } from "./routers/api-router";
+import fs from "fs";
+

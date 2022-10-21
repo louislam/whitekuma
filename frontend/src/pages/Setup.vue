@@ -13,7 +13,7 @@
                     {{ $t("Create your admin account") }}
                 </p>
 
-                <div class="form-floating">
+                <div v-if="false" class="form-floating">
                     <select id="language" v-model="$i18n.locale" class="form-select">
                         <option v-for="(lang, i) in $i18n.availableLocales" :key="`Lang${i}`" :value="lang">
                             {{ $i18n.messages[lang].languageName }}

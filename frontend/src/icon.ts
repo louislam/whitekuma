@@ -7,12 +7,14 @@ import {
     faArrowAltCircleUp,
     faAngleDown,
     faPlus,
+    faCog,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
     faArrowAltCircleUp,
     faAngleDown,
     faPlus,
+    faCog,
 );
 
 export { FontAwesomeIcon };

@@ -44,9 +44,6 @@ export default {
             processing: false,
             username: "",
             password: "",
-            token: "",
-            res: null,
-            tokenRequired: false,
         };
     },
 
@@ -55,6 +52,11 @@ export default {
         if (needSetup) {
             console.log("Need Setup");
             this.$router.push("/setup");
+        }
+
+        // If loggedIn, get out
+        if (this.$root.loggedIn) {
+            this.$router.push("/");
         }
     },
 
@@ -70,6 +72,21 @@ export default {
         /** Submit the user details and attempt to log in */
         async submit() {
             this.processing = true;
+
+            try {
+                const res = await axios.post("/api/login", {
+                    username: this.username,
+                    password: this.password,
+                });
+
+                this.$root.storage().token = res.data.token;
+                this.$root.storage().username = res.data.username;
+                this.$root.username = res.data.username;
+                this.$router.push("/");
+
+            } catch (e) {
+                this.$root.showError(e);
+            }
 
             this.processing = false;
         },

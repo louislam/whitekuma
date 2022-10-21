@@ -7,8 +7,8 @@
                 <span class="fs-4 title">WhiteKuma</span>
             </router-link>
 
-            <div class="right">
-                <a target="_blank" href="https://github.com/louislam/uptime-kuma/releases" class="btn btn-info me-3">
+            <div v-if="$root.username != null" class="right">
+                <a v-if="false" target="_blank" href="https://github.com/louislam/uptime-kuma/releases" class="btn btn-info me-3">
                     <font-awesome-icon icon="arrow-alt-circle-up" /> {{ $t("New Update") }}
                 </a>
 
@@ -24,21 +24,15 @@
                             <ul class="dropdown-menu">
                                 <!-- Username -->
                                 <li>
-                                    <i18n-t v-if="$root.username != null" tag="span" keypath="signedInDisp" class="dropdown-item-text">
+                                    <i18n-t tag="span" keypath="signedInDisp" class="dropdown-item-text">
                                         <strong>{{ $root.username }}</strong>
                                     </i18n-t>
-                                    <span v-if="$root.username == null" class="dropdown-item-text">{{ $t("signedInDispDisabled") }}</span>
+                                    <span v-if="false" class="dropdown-item-text">{{ $t("signedInDispDisabled") }}</span>
                                 </li>
 
                                 <li><hr class="dropdown-divider"></li>
 
                                 <!-- Functions -->
-                                <li>
-                                    <router-link to="/maintenance" class="dropdown-item" :class="{ active: $route.path.includes('manage-maintenance') }">
-                                        <font-awesome-icon icon="wrench" /> {{ $t("Maintenance") }}
-                                    </router-link>
-                                </li>
-
                                 <li>
                                     <router-link to="/settings/general" class="dropdown-item" :class="{ active: $route.path.includes('settings') }">
                                         <font-awesome-icon icon="cog" /> {{ $t("Settings") }}

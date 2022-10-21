@@ -2,6 +2,7 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import visualizer from "rollup-plugin-visualizer";
 import viteCompression from "vite-plugin-compression";
+import legacy from "@vitejs/plugin-legacy";
 
 const postCssScss = require("postcss-scss");
 
@@ -18,6 +19,9 @@ export default defineConfig({
     },
     plugins: [
         vue(),
+        legacy({
+            targets: [ "since 2015" ],
+        }),
         visualizer({
             filename: "tmp/dist-stats.html"
         }),
@@ -37,6 +41,7 @@ export default defineConfig({
         }
     },
     build: {
-        outDir: "../dist"
+        outDir: "../dist",
+        emptyOutDir: true,
     }
 });

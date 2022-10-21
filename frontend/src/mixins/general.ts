@@ -50,6 +50,10 @@ export default {
             toast.success(msg);
         },
 
+        showMsg(msg) {
+            toast.info(msg);
+        },
+
         /**
          * Show an error toast
          */
