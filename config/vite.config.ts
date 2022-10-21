@@ -36,4 +36,7 @@ export default defineConfig({
             "map": false,
         }
     },
+    build: {
+        outDir: "../dist"
+    }
 });

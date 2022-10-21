@@ -76,8 +76,17 @@ apiRouter.get("/jobs", (request, response) => {
 });
 
 // Get a Job
-apiRouter.get("/job/:id", (request, response) => {
+apiRouter.get("/job/:id", (req, res) => {
+    try {
+        const job = server.getJob(parseInt(req.params.id));
 
+        res.json({
+            ok: true,
+            job: job.jobData,
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
 // Pause a Job
@@ -129,39 +138,44 @@ apiRouter.get("/job/:id/download/:backupName", (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
 
-        // TODO Check free space
-
     } catch (e) {
         responseError(res, e);
     }
 });
 
 // Restore Backup
-apiRouter.get("/job/:id/restore/:backupName", (req, res) => {
+apiRouter.get("/job/:id/restore/:backupName", async (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
-
-        // TODO Check free space
-
-        job.restore();
-
+        const dir = await job.restore(req.params.backupName);
+        res.json({
+            ok: true,
+            outputDir: dir,
+        });
     } catch (e) {
         responseError(res, e);
     }
-
 });
 
 // Create or Update a Job
-apiRouter.post("/job/:id", (request, response) => {
+apiRouter.post("/job/:id", (req, res) => {
 
 });
 
 // Delete a Job
-apiRouter.delete("/job/:id", (request, response) => {
-
+apiRouter.delete("/job/:id", async (req, res) => {
+    try {
+        const job = server.getJob(parseInt(req.params.id));
+        await job.delete();
+        res.json({
+            ok: true,
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
-// sse
+// TODO: sse
 apiRouter.get("/sse", (req, res) => {
     console.log("new connection");
 

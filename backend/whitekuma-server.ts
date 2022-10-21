@@ -47,6 +47,9 @@ export class WhiteKumaServer {
         }
 
         console.debug("Adding API Router");
+        this.app.use("/", expressStaticGzip("dist", {
+            enableBrotli: true,
+        }));
         this.app.use("/api", apiRouter);
         this._db = await Database.createDB(this.dataDir);
         this._cryptr = new Cryptr(this._db.data.secret);

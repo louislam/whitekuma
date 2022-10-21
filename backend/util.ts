@@ -24,6 +24,7 @@ export function sleep(ms : number) {
 }
 
 export type BackupInfoJSON = {
+    dir: string;
     date: string;
     size: number;
     totalSize: number;

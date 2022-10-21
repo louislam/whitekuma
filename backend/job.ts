@@ -66,7 +66,7 @@ export class Job {
         }
     }
 
-    async restore(backupName : string) {
+    async restore(backupName : string) : Promise<string> {
         if (this.runningBackupOrRestore) {
             let errorMsg = "Running Backup or Restore currently, please try again later.";
             console.log(sb(this._jobData.name), errorMsg);
@@ -75,9 +75,10 @@ export class Job {
 
         try {
             this.runningRestore = true;
-            await this.method.restore(backupName);
+            let dir = await this.method.restore(backupName);
             this.runningRestore = false;
             console.log(sb(this._jobData.name), "Restore done");
+            return dir;
         } catch (e) {
             console.log(sb(this._jobData.name), "Restore failed");
             console.error(sb(this._jobData.name), e);
@@ -99,4 +100,7 @@ export class Job {
         return this.runningBackup || this.runningRestore;
     }
 
+    async delete() {
+        // TODO
+    }
 }

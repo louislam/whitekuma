@@ -5,22 +5,24 @@ import path from "path";
 import { BackupInfoJSON, dirSize, readJSON, sb, sleep } from "../util";
 import { WhiteKumaServer } from "../whitekuma-server";
 import * as os from "os";
+import { SQL_DATETIME_FORMAT } from "../../shared/util";
+import dayjs from "dayjs";
 
 export class MariaBackupMethod extends Method {
 
-    async backup() {
+    async backup() : Promise<BackupInfoJSON> {
         const baseBackup = path.join(this.baseDir, "base");
 
         if (!fs.existsSync(baseBackup)) {
-            await this.createBaseBackup(baseBackup);
+            return await this.createBaseBackup(baseBackup);
         } else {
-            await this.createIncrementalBackup();
+            return await this.createIncrementalBackup();
         }
 
     }
 
     async createBaseBackup(baseBackup : string) {
-        await this.createBackup(baseBackup);
+        return await this.createBackup(baseBackup);
     }
 
     async createIncrementalBackup() {
@@ -39,7 +41,7 @@ export class MariaBackupMethod extends Method {
             }
         }
 
-        await this.createBackup(finalDir, this.getLastBackupName());
+        return await this.createBackup(finalDir, this.getLastBackupName());
     }
 
     getLastBackupName() : string {
@@ -70,7 +72,11 @@ export class MariaBackupMethod extends Method {
         return list;
     }
 
-    private async createBackup(finalDir : string, previousBackupName : string | null = null) {
+    private async createBackup(finalDir : string, previousBackupName : string | null = null) : Promise<BackupInfoJSON> {
+        this.createDirIfNotExists();
+
+        let server = WhiteKumaServer.getInstance();
+
         const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_temp_backup_"));
         let previousBackupDir : string | null = null;
 
@@ -78,15 +84,12 @@ export class MariaBackupMethod extends Method {
             previousBackupDir = path.join(this.baseDir, previousBackupName);
         }
 
-        let server = WhiteKumaServer.getInstance();
-
         console.log(sb(this.job.jobData.name), "finalDir: " + finalDir);
         console.log(sb(this.job.jobData.name), "tempDir: " + tempDir);
         console.log(sb(this.job.jobData.name), "previousBackupDir: " + previousBackupDir);
 
         await new Promise<void>((resolve, reject) => {
             let args = [
-                "--compress",
                 "--backup",
                 "--target-dir=" + tempDir,
                 "--host=" + this.job.jobData.hostname,
@@ -108,11 +111,17 @@ export class MariaBackupMethod extends Method {
 
             child.stderr.setEncoding("utf-8");
             child.stderr.on("data", (data) => {
+                // Some normal msg write here, so don't use console.error
                 console.log(sb(this.job.jobData.name), data.trim());
             });
 
             child.on("exit", async (code) => {
-                resolve();
+                console.debug(sb(this.job.jobData.name), "Exit Code: " + code);
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error("Exit Code: " + code));
+                }
             });
 
             child.on("error", (err) => {
@@ -132,6 +141,7 @@ export class MariaBackupMethod extends Method {
         }
 
         let info : BackupInfoJSON = {
+            dir: finalDir,
             date: new Date().toJSON(),
             size,
             totalSize,
@@ -141,9 +151,12 @@ export class MariaBackupMethod extends Method {
 
         fs.writeFileSync(path.join(tempDir, "info.json"), JSON.stringify(info));
         fs.renameSync(tempDir, finalDir);
+        return info;
     }
 
-    async restore(backupName : string) {
+    async restore(backupName : string) : Promise<string> {
+        this.createDirIfNotExists();
+
         const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_temp_restore_"));
 
         const stack : BackupInfoJSON[] = [];
@@ -152,8 +165,17 @@ export class MariaBackupMethod extends Method {
 
         // From selected backup down to the `base`
         while (true) {
-            let info = readJSON<BackupInfoJSON>(path.join(this.baseDir, currentBackupName, "info.json"));
+            let p = path.join(this.baseDir, currentBackupName);
+            let info = readJSON<BackupInfoJSON>(path.join(p, "info.json"));
+
+            if (!info || typeof info !== "object") {
+                throw new Error("Invalid Backup: info.json is not an object");
+            }
+
+            // TODO: Check free space
+
             stack.push(info);
+
             if (info.previousBackupName) {
                 currentBackupName = info.previousBackupName;
             } else {
@@ -161,21 +183,75 @@ export class MariaBackupMethod extends Method {
             }
         }
 
+        // Copy the base to temp
+        let info = stack.pop();
+
+        if (!info) {
+            throw new Error("No base?");
+        }
+
         // Start from base
         while (true) {
-            let info = stack.pop();
+            await this.prepareRestore(info, tempDir);
+            info = stack.pop();
 
             if (!info) {
                 break;
             }
-
-            // For base
-            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/
-
-            // For others
-            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/ --incremental-dir=/tmp/mariadb/backup/increment/
-            // mariabackup --prepare --apply-log-only --target-dir=/tmp/mariadb/backup/ --incremental-dir=/tmp/mariadb/backup/incrementNew/
         }
+
+        // Move to <baseDir>/restore/<timestamp>
+        const finalDir = path.join(this.baseDir, "restore", `restore-${dayjs().format(SQL_DATETIME_FORMAT)}`);
+
+        fs.renameSync(tempDir, finalDir);
+        return finalDir;
+    }
+
+    private async prepareRestore(info: BackupInfoJSON, tempDir: string) {
+        const isBase = !info.previousBackupDir;
+
+        if (isBase) {
+            fs.cpSync(info.dir, tempDir, {
+                recursive: true,
+            });
+        }
+
+        await new Promise<void>((resolve, reject) => {
+            let args = [
+                "--prepare",
+                "--target-dir=" + tempDir,
+            ];
+
+            if (!isBase) {
+                args.push("--incremental-basedir=" + info.dir);
+            }
+
+            let child = childProcess.spawn(this.executable, args);
+
+            child.stdout.setEncoding("utf-8");
+            child.stdout.on("data", (data) => {
+                console.log(sb(this.job.jobData.name), data.trim());
+            });
+
+            child.stderr.setEncoding("utf-8");
+            child.stderr.on("data", (data) => {
+                console.log(sb(this.job.jobData.name), data.trim());
+            });
+
+            child.on("exit", async (code) => {
+                console.debug(sb(this.job.jobData.name), "Exit Code: " + code);
+
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error("Exit Code: " + code));
+                }
+            });
+
+            child.on("error", (err) => {
+                reject(err);
+            });
+        });
     }
 
     get executable() {
