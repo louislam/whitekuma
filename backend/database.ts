@@ -67,6 +67,13 @@ export type JobData = {
     customExecutable: string;
 }
 
+export type JobSimple = {
+    id: number;
+    name: string;
+    active: boolean;
+    loaded: boolean;
+}
+
 export type User = {
     username: string;
     password: string;

@@ -1,90 +1,92 @@
 <template>
-    <div v-if="job">
-        <h1>
-            {{ job.name }}
-        </h1>
+    <transition name="slide-fade" appear>
+        <div v-if="job && job.loaded">
+            <h1>
+                {{ job.name }}
+            </h1>
 
-        <div>
-            <div class="mb-1">
-                <Pill type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
+            <div>
+                <div class="mb-1">
+                    <Pill type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
+                </div>
+                <div class="mb-3">
+                    Next Backup: {{ formatDate(job.nextDate) }}
+                </div>
             </div>
-            <div class="mb-3">
-                Next Backup: {{ formatDate(job.nextDate) }}
+
+            <div class="functions mb-3">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-primary" @click="">
+                        <font-awesome-icon icon="database" /> {{ $t("Backup Now") }}
+                    </button>
+                    <button class="btn btn-normal" @click="">
+                        <font-awesome-icon icon="database" /> {{ $t("Pause") }}
+                    </button>
+
+                    <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
+                        <font-awesome-icon icon="edit" /> {{ $t("Edit") }}
+                    </router-link>
+
+                    <button class="btn btn-danger" @click="deleteDialog">
+                        <font-awesome-icon icon="trash" /> {{ $t("Delete this Job") }}
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="functions mb-3">
-            <div class="btn-group" role="group">
-                <button class="btn btn-primary" @click="">
-                    <font-awesome-icon icon="database" /> {{ $t("Backup Now") }}
-                </button>
-                <button class="btn btn-normal" @click="">
-                    <font-awesome-icon icon="database" /> {{ $t("Pause") }}
-                </button>
+            <h4 class="mb-3">Backup List</h4>
 
-                <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
-                    <font-awesome-icon icon="edit" /> {{ $t("Edit") }}
-                </router-link>
-
-                <button class="btn btn-danger" @click="deleteDialog">
-                    <font-awesome-icon icon="trash" /> {{ $t("Delete this Job") }}
-                </button>
+            <div class="functions mb-3">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-danger" @click="deleteDialog">
+                        <font-awesome-icon icon="trash" /> {{ $t("Delete All Backups") }}
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <h4 class="mb-3">Backup List</h4>
+            <div class="shadow-box">
+                <span v-if="job.backupList.length === 0" class="d-flex align-items-center justify-content-center my-3">
+                    {{ $t("No Backup") }}
+                </span>
 
-        <div class="functions mb-3">
-            <div class="btn-group" role="group">
-                <button class="btn btn-danger" @click="deleteDialog">
-                    <font-awesome-icon icon="trash" /> {{ $t("Delete All Backups") }}
-                </button>
-            </div>
-        </div>
-
-        <div class="shadow-box">
-            <span v-if="job.backupList.length === 0" class="d-flex align-items-center justify-content-center my-3">
-                {{ $t("No Backup") }}
-            </span>
-
-            <div
-                v-for="(item, index) in job.backupList.reverse()"
-                :key="index"
-                class="item scheduled"
-            >
-                <div class="left-part">
-                    <div
-                        class="circle"
-                    ></div>
-                    <div class="info">
-                        <div class="title">
-                            {{ formatDate(item.date) }}
+                <div
+                    v-for="(item, index) in job.backupList"
+                    :key="index"
+                    class="item scheduled"
+                >
+                    <div class="left-part">
+                        <div
+                            class="circle"
+                        ></div>
+                        <div class="info">
+                            <div class="title">
+                                {{ formatDate(item.date) }}
+                            </div>
+                            <div class="status">
+                                Increment Size: {{ size(item.size) }}<br />
+                                Total Size: ~{{ size(item.totalSize) }}
+                            </div>
                         </div>
-                        <div class="status">
-                            Increment Size: {{ size(item.size) }}<br />
-                            Total Size: ~{{ size(item.totalSize) }}
+                    </div>
+
+                    <div class="buttons">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-normal" @click="deleteDialog(item.id)">
+                                <font-awesome-icon icon="trash" /> {{ $t("Export to Data Directory") }}
+                            </button>
+
+                            <router-link :to="'/maintenance/edit/' + item.id" class="btn btn-normal">
+                                <font-awesome-icon icon="edit" /> {{ $t("Download (tar.gz)") }}
+                            </router-link>
+
+                            <button v-if="false" class="btn btn-danger" @click="deleteDialog(item.id)">
+                                <font-awesome-icon icon="trash" /> {{ $t("Delete") }}
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <div class="buttons">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-normal" @click="deleteDialog(item.id)">
-                            <font-awesome-icon icon="trash" /> {{ $t("Export to Data Directory") }}
-                        </button>
-
-                        <router-link :to="'/maintenance/edit/' + item.id" class="btn btn-normal">
-                            <font-awesome-icon icon="edit" /> {{ $t("Download (tar.gz)") }}
-                        </router-link>
-
-                        <button v-if="false" class="btn btn-danger" @click="deleteDialog(item.id)">
-                            <font-awesome-icon icon="trash" /> {{ $t("Delete") }}
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
+    </transition>
 </template>
 
 <script lang="ts">
@@ -101,8 +103,15 @@ export default {
 
     data() {
         return {
-            job: null,
+
         };
+    },
+
+    computed: {
+        job() {
+            let id = this.$route.params.id;
+            return this.$root.jobList[id];
+        }
     },
 
     async mounted() {
@@ -110,8 +119,7 @@ export default {
 
         try {
             const res = await axios.get("/api/job/" + id);
-            this.job = res.data.job;
-
+            this.$root.jobList[res.data.job.id] = res.data.job;
         } catch (e) {
             this.$root.showError(e);
         }

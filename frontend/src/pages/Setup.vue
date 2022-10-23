@@ -1,48 +1,50 @@
 <template>
-    <div class="form-container" data-cy="setup-form">
-        <div class="form">
-            <form @submit.prevent="submit">
-                <div>
-                    <object width="64" height="64" data="/icon.svg" />
-                    <div style="font-size: 28px; font-weight: bold; margin-top: 5px;">
-                        WhiteKuma
+    <transition name="slide-fade" appear>
+        <div class="form-container" data-cy="setup-form">
+            <div class="form">
+                <form @submit.prevent="submit">
+                    <div>
+                        <object width="64" height="64" data="/icon.svg" />
+                        <div style="font-size: 28px; font-weight: bold; margin-top: 5px;">
+                            WhiteKuma
+                        </div>
                     </div>
-                </div>
 
-                <p class="mt-3">
-                    {{ $t("Create your admin account") }}
-                </p>
+                    <p class="mt-3">
+                        {{ $t("Create your admin account") }}
+                    </p>
 
-                <div v-if="false" class="form-floating">
-                    <select id="language" v-model="$i18n.locale" class="form-select">
-                        <option v-for="(lang, i) in $i18n.availableLocales" :key="`Lang${i}`" :value="lang">
-                            {{ $i18n.messages[lang].languageName }}
-                        </option>
-                    </select>
-                    <label for="language" class="form-label">{{ $t("Language") }}</label>
-                </div>
+                    <div v-if="false" class="form-floating">
+                        <select id="language" v-model="$i18n.locale" class="form-select">
+                            <option v-for="(lang, i) in $i18n.availableLocales" :key="`Lang${i}`" :value="lang">
+                                {{ $i18n.messages[lang].languageName }}
+                            </option>
+                        </select>
+                        <label for="language" class="form-label">{{ $t("Language") }}</label>
+                    </div>
 
-                <div class="form-floating mt-3">
-                    <input id="floatingInput" v-model="username" type="text" class="form-control" placeholder="Username" required data-cy="username-input">
-                    <label for="floatingInput">{{ $t("Username") }}</label>
-                </div>
+                    <div class="form-floating mt-3">
+                        <input id="floatingInput" v-model="username" type="text" class="form-control" placeholder="Username" required data-cy="username-input">
+                        <label for="floatingInput">{{ $t("Username") }}</label>
+                    </div>
 
-                <div class="form-floating mt-3">
-                    <input id="floatingPassword" v-model="password" type="password" class="form-control" placeholder="Password" required data-cy="password-input">
-                    <label for="floatingPassword">{{ $t("Password") }}</label>
-                </div>
+                    <div class="form-floating mt-3">
+                        <input id="floatingPassword" v-model="password" type="password" class="form-control" placeholder="Password" required data-cy="password-input">
+                        <label for="floatingPassword">{{ $t("Password") }}</label>
+                    </div>
 
-                <div class="form-floating mt-3">
-                    <input id="repeat" v-model="repeatPassword" type="password" class="form-control" placeholder="Repeat Password" required data-cy="password-repeat-input">
-                    <label for="repeat">{{ $t("Repeat Password") }}</label>
-                </div>
+                    <div class="form-floating mt-3">
+                        <input id="repeat" v-model="repeatPassword" type="password" class="form-control" placeholder="Repeat Password" required data-cy="password-repeat-input">
+                        <label for="repeat">{{ $t("Repeat Password") }}</label>
+                    </div>
 
-                <button class="w-100 btn btn-primary mt-3" type="submit" :disabled="processing" data-cy="submit-setup-form">
-                    {{ $t("Create") }}
-                </button>
-            </form>
+                    <button class="w-100 btn btn-primary mt-3" type="submit" :disabled="processing" data-cy="submit-setup-form">
+                        {{ $t("Create") }}
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
+    </transition>
 </template>
 
 <script lang="ts">

@@ -5,6 +5,7 @@ import { passwordStrength } from "check-password-strength";
 import cors from "cors";
 import { verify, hash } from "../password-hash";
 import jwt from "jsonwebtoken";
+import { JobSimple } from "../database";
 
 const server = WhiteKumaServer.getInstance();
 
@@ -101,14 +102,20 @@ apiRouter.post("/login", (req, res) => {
 apiRouter.get("/job-list", (req, res) => {
     try {
         server.checkLogin(req);
+
+        let list : Record<string, JobSimple> = {};
+
+        for (let job of server.db.data.jobs) {
+            list[job.id] = {
+                id: job.id,
+                name: job.name,
+                active: job.active,
+                loaded: false,
+            };
+        }
+
         res.json({
-            jobList: server.db.data.jobs.map((job) => {
-                return {
-                    id: job.id,
-                    name: job.name,
-                    active: job.active,
-                };
-            }),
+            jobList: list,
         });
     } catch (e) {
         responseError(res, e);
@@ -212,19 +219,18 @@ apiRouter.delete("/job/:id", async (req, res) => {
 apiRouter.get("/sse", (req, res) => {
     console.log("new connection");
 
-    const sseStream = new SseStream(req);
-    sseStream.pipe(res);
-    const pusher = setInterval(() => {
-        sseStream.write({
-            event: "server-time",
-            data: new Date().toTimeString()
-        });
-    }, 1000);
+    const sse = new SseStream(req);
+    sse.pipe(res);
+
+    const message = {
+        event: "server-time",
+        data: "hello\nworld",
+    };
+    sse.write(message);
 
     res.on("close", () => {
         console.log("lost connection");
-        clearInterval(pusher);
-        sseStream.unpipe(res);
+        sse.unpipe(res);
     });
 });
 

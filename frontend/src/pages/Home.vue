@@ -1,5 +1,7 @@
 <template>
-    Home
+    <transition name="slide-fade" appear>
+        Home
+    </transition>
 </template>
 
 <script lang="ts">

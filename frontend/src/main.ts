@@ -7,6 +7,7 @@ import "./assets/app.scss";
 import { i18n } from "./i18n";
 import { FontAwesomeIcon } from "./icon";
 import { router } from "./router";
+import VueSSE from "vue-sse";
 
 import datetime from "./mixins/datetime";
 import mobile from "./mixins/mobile";
@@ -36,6 +37,8 @@ const app = createApp({
 
 app.use(router);
 app.use(i18n);
+
+app.use(VueSSE);
 
 const options = {
     position: "bottom-right",

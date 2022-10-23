@@ -15,11 +15,11 @@
             </div>
         </div>
         <div class="job-list" :class="{ scrollbar: scrollbar }">
-            <div v-if="jobList.length === 0 && loaded" class="text-center mt-3">
+            <div v-if="$root.jobList.length === 0 && loaded" class="text-center mt-3">
                 {{ $t("No Task, please") }} <router-link to="/add">{{ $t("add one") }}</router-link>
             </div>
 
-            <router-link v-for="(job, index) in jobList" :key="index" :to="'/job/' + job.id" class="item" :class="{ 'disabled': ! job.active }">
+            <router-link v-for="(job, index) in $root.jobList" :key="index" :to="'/job/' + job.id" class="item" :class="{ 'disabled': ! job.active }">
                 <Pill type="primary">Active</Pill>
                 <div class="info">
                     {{ job.name }}
@@ -48,7 +48,6 @@ export default {
         return {
             searchText: "",
             windowTop: 0,
-            jobList: [],
             loaded: false,
         };
     },
@@ -68,49 +67,6 @@ export default {
                     height: "calc(100vh - 160px)",
                 };
             }
-
-        },
-
-        sortedJobList() {
-            let result = this.jobList;
-
-            result.sort((m1, m2) => {
-
-                if (m1.active !== m2.active) {
-                    if (m1.active === 0) {
-                        return 1;
-                    }
-
-                    if (m2.active === 0) {
-                        return -1;
-                    }
-                }
-
-                if (m1.weight !== m2.weight) {
-                    if (m1.weight > m2.weight) {
-                        return -1;
-                    }
-
-                    if (m1.weight < m2.weight) {
-                        return 1;
-                    }
-                }
-
-                return m1.name.localeCompare(m2.name);
-            });
-
-            // Simple filter by search text
-            // finds monitor name, tag name or tag value
-            if (this.searchText !== "") {
-                const loweredSearchText = this.searchText.toLowerCase();
-                result = result.filter(monitor => {
-                    return monitor.name.toLowerCase().includes(loweredSearchText)
-                    || monitor.tags.find(tag => tag.name.toLowerCase().includes(loweredSearchText)
-                    || tag.value?.toLowerCase().includes(loweredSearchText));
-                });
-            }
-
-            return result;
         },
     },
     async mounted() {
@@ -118,7 +74,16 @@ export default {
 
         try {
             const res = await axios.get("/api/job-list");
-            this.jobList = res.data.jobList;
+
+            for (let id in res.data.jobList) {
+                if (!this.$root.jobList[id]) {
+                    this.$root.jobList[id] = res.data.jobList[id];
+                }
+            }
+
+            // Connect here, because it should be logged in.
+            this.$root.connectSSE();
+
         } catch (e) {
             this.$root.showError(e);
         }

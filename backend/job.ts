@@ -17,6 +17,7 @@ export class Job {
         const server = WhiteKumaServer.getInstance();
 
         return {
+            id: this.jobData.id,
             name: this.jobData.name,
             cron: this.jobData.cron,
             active: this.jobData.active,
@@ -25,9 +26,10 @@ export class Job {
             username: this.jobData.username,
             password: server.cryptr.decrypt(this.jobData.password),
             customExecutable: this.jobData.customExecutable,
-            backupList: this.method.getBackupList(),
+            backupList: this.method.getBackupList().reverse(),
             isRunning: this.cron.running(),
             nextDate: this.cron.next()?.toJSON(),
+            loaded: true,
         };
     }
 
