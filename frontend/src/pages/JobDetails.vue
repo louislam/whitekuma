@@ -1,33 +1,247 @@
 <template>
-    <div class="functions">
-        <div class="btn-group" role="group">
-            <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
-                <font-awesome-icon icon="edit" /> {{ $t("Edit") }}
-            </router-link>
-            <button class="btn btn-danger" @click="deleteDialog">
-                <font-awesome-icon icon="trash" /> {{ $t("Delete") }}
-            </button>
+    <div v-if="job">
+        <h1>
+            {{ job.name }}
+        </h1>
+
+        <div>
+            <div class="mb-1">
+                <Pill type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
+            </div>
+            <div class="mb-3">
+                Next Backup: {{ formatDate(job.nextDate) }}
+            </div>
+        </div>
+
+        <div class="functions mb-3">
+            <div class="btn-group" role="group">
+                <button class="btn btn-primary" @click="">
+                    <font-awesome-icon icon="database" /> {{ $t("Backup Now") }}
+                </button>
+                <button class="btn btn-normal" @click="">
+                    <font-awesome-icon icon="database" /> {{ $t("Pause") }}
+                </button>
+
+                <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
+                    <font-awesome-icon icon="edit" /> {{ $t("Edit") }}
+                </router-link>
+
+                <button class="btn btn-danger" @click="deleteDialog">
+                    <font-awesome-icon icon="trash" /> {{ $t("Delete this Job") }}
+                </button>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Backup List</h4>
+
+        <div class="functions mb-3">
+            <div class="btn-group" role="group">
+                <button class="btn btn-danger" @click="deleteDialog">
+                    <font-awesome-icon icon="trash" /> {{ $t("Delete All Backups") }}
+                </button>
+            </div>
+        </div>
+
+        <div class="shadow-box">
+            <span v-if="job.backupList.length === 0" class="d-flex align-items-center justify-content-center my-3">
+                {{ $t("No Backup") }}
+            </span>
+
+            <div
+                v-for="(item, index) in job.backupList.reverse()"
+                :key="index"
+                class="item scheduled"
+            >
+                <div class="left-part">
+                    <div
+                        class="circle"
+                    ></div>
+                    <div class="info">
+                        <div class="title">
+                            {{ formatDate(item.date) }}
+                        </div>
+                        <div class="status">
+                            Increment Size: {{ size(item.size) }}<br />
+                            Total Size: ~{{ size(item.totalSize) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-normal" @click="deleteDialog(item.id)">
+                            <font-awesome-icon icon="trash" /> {{ $t("Export to Data Directory") }}
+                        </button>
+
+                        <router-link :to="'/maintenance/edit/' + item.id" class="btn btn-normal">
+                            <font-awesome-icon icon="edit" /> {{ $t("Download (tar.gz)") }}
+                        </router-link>
+
+                        <button v-if="false" class="btn btn-danger" @click="deleteDialog(item.id)">
+                            <font-awesome-icon icon="trash" /> {{ $t("Delete") }}
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import axios from "axios";
+import { dayjs } from "../dayjs.js";
+import { SQL_DATETIME_FORMAT } from "../../../shared/util";
+import Pill from "../components/Pill.vue";
+
 export default {
+
+    components: {
+        Pill,
+    },
 
     data() {
         return {
-            job: {},
+            job: null,
         };
     },
 
-    mounted() {
+    async mounted() {
         let id = this.$route.params.id;
-        this.job.id = id;
+
+        try {
+            const res = await axios.get("/api/job/" + id);
+            this.job = res.data.job;
+
+        } catch (e) {
+            this.$root.showError(e);
+        }
+    },
+
+    methods: {
+        formatDate(value) : string {
+            return dayjs(value).format(SQL_DATETIME_FORMAT);
+        },
+
+        size(b) : string {
+            let kb = Math.round(b / 1024);
+
+            if (kb === 0) {
+                return b + "B";
+            }
+
+            let mb = Math.round(kb / 1024);
+
+            if (mb === 0) {
+                return kb + "KB";
+            }
+
+            let gb = Math.round(mb / 1024);
+
+            if (gb === 0) {
+                return mb + "MB";
+            } else {
+                return gb + "GB";
+            }
+
+        }
     }
 
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
+@import "../assets/vars.scss";
 
+.item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all ease-in-out 0.15s;
+    justify-content: space-between;
+    padding: 10px;
+    min-height: 90px;
+    margin-bottom: 5px;
+
+    &:hover {
+        background-color: $highlight-white;
+    }
+
+    &.under-maintenance {
+        background-color: rgba(23, 71, 245, 0.16);
+
+        &:hover {
+            background-color: rgba(23, 71, 245, 0.3) !important;
+        }
+
+        .circle {
+            background-color: $maintenance;
+        }
+    }
+
+    &.scheduled {
+        .circle {
+            background-color: $primary;
+        }
+    }
+
+    &.inactive {
+        .circle {
+            background-color: $danger;
+        }
+    }
+
+    &.ended {
+        .left-part {
+            opacity: 0.3;
+        }
+
+        .circle {
+            background-color: $dark-font-color;
+        }
+    }
+
+    &.unknown {
+        .circle {
+            background-color: $dark-font-color;
+        }
+    }
+
+    .left-part {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        .circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50rem;
+        }
+
+        .info {
+            .title {
+                font-weight: bold;
+                font-size: 20px;
+            }
+
+            .status {
+                font-size: 14px;
+            }
+        }
+    }
+
+    .buttons {
+        display: flex;
+        gap: 8px;
+    }
+}
+
+.dark {
+    .item {
+        &:hover {
+            background-color: $dark-bg2;
+        }
+    }
+}
 </style>

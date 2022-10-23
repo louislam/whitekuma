@@ -4,6 +4,7 @@ import { MariaBackupMethod } from "./methods/mariabackup-method";
 // @ts-ignore
 import { Cron } from "croner";
 import { sb } from "./util";
+import { WhiteKumaServer } from "./whitekuma-server";
 
 export class Job {
     private readonly _jobData : JobData;
@@ -11,6 +12,24 @@ export class Job {
     private runningBackup : boolean = false;
     private runningRestore: boolean = false;
     private cron : Cron;
+
+    toPublicJSON() {
+        const server = WhiteKumaServer.getInstance();
+
+        return {
+            name: this.jobData.name,
+            cron: this.jobData.cron,
+            active: this.jobData.active,
+            hostname: this.jobData.hostname,
+            port: this.jobData.port,
+            username: this.jobData.username,
+            password: server.cryptr.decrypt(this.jobData.password),
+            customExecutable: this.jobData.customExecutable,
+            backupList: this.method.getBackupList(),
+            isRunning: this.cron.running(),
+            nextDate: this.cron.next()?.toJSON(),
+        };
+    }
 
     constructor(jobData : JobData, dataDir : string) {
         this._jobData = jobData;
@@ -24,7 +43,7 @@ export class Job {
         this.cron = new Cron(this._jobData.cron);
 
         // The job will not start here
-        this.cron.stop();
+        this.cron.pause();
 
         console.debug(sb(this._jobData.name), "Is running after new: " + this.cron.running());
         this.cron.schedule(async () => {
@@ -42,6 +61,9 @@ export class Job {
         this.cron.resume();
 
         console.log(sb(this._jobData.name), "Job Started");
+
+        console.debug(sb(this._jobData.name), "Is running: " + this.cron.running());
+        console.debug(sb(this._jobData.name), "Next Date: " + this.cron.next());
     }
 
     async backupNow(throwError = false) {

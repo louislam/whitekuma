@@ -77,7 +77,7 @@ export default {
 
     computed: {
         pageName() {
-            return this.$t((this.isAdd) ? "Add Backup Task" : "Edit");
+            return this.$t((this.isAdd) ? "Add Backup Job" : "Edit");
         },
 
         isAdd() {

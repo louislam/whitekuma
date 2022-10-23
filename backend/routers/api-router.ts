@@ -102,7 +102,13 @@ apiRouter.get("/job-list", (req, res) => {
     try {
         server.checkLogin(req);
         res.json({
-            jobList: server.db.data.jobs,
+            jobList: server.db.data.jobs.map((job) => {
+                return {
+                    id: job.id,
+                    name: job.name,
+                    active: job.active,
+                };
+            }),
         });
     } catch (e) {
         responseError(res, e);
@@ -116,7 +122,7 @@ apiRouter.get("/job/:id", (req, res) => {
         const job = server.getJob(parseInt(req.params.id));
 
         res.json({
-            job: job.jobData,
+            job: job.toPublicJSON(),
         });
     } catch (e) {
         responseError(res, e);

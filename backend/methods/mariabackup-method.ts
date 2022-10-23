@@ -45,10 +45,10 @@ export class MariaBackupMethod extends Method {
     }
 
     getLastBackupName() : string {
-        return this.getBackupList().slice(-1)[0].name;
+        return this.getBackupNameList().slice(-1)[0].name;
     }
 
-    getBackupList() {
+    getBackupNameList() : fs.Dirent[] {
         const list = fs.readdirSync(this.baseDir, {
             withFileTypes: true
         }).filter((item) => {
@@ -70,6 +70,19 @@ export class MariaBackupMethod extends Method {
         console.debug(list);
 
         return list;
+    }
+
+    getBackupList(): BackupInfoJSON[] {
+        let result = [];
+
+        for (let dirent of this.getBackupNameList()) {
+            let currentBackupName = dirent.name;
+            let p = path.join(this.baseDir, currentBackupName);
+            let info = readJSON<BackupInfoJSON>(path.join(p, "info.json"));
+            result.push(info);
+        }
+
+        return result;
     }
 
     private async createBackup(finalDir : string, previousBackupName : string | null = null) : Promise<BackupInfoJSON> {

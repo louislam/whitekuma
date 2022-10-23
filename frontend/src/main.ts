@@ -15,18 +15,7 @@ import job from "./mixins/job";
 import theme from "./mixins/theme";
 import lang from "./mixins/lang";
 import general from "./mixins/general";
-
-// TODO: Issue after build dist
-// Call extend() dead
-/*
-import * as dayjs from "dayjs";
-import * as timezone from "dayjs/plugin/timezone";
-import * as utc from "dayjs/plugin/utc";
-import * as relativeTime from "dayjs/plugin/relativeTime";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(relativeTime);*/
+import "./dayjs";
 
 const app = createApp({
     mixins: [

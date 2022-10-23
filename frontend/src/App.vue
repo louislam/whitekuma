@@ -3,9 +3,10 @@
         <!-- Desktop header -->
         <header v-if="! $root.isMobile" class="header py-3 mb-3 border-bottom">
             <router-link to="/" class="title-link">
-                <object class="logo" width="40" height="40" data="/icon.svg" />
+                <object v-if="false" class="logo" width="40" height="40" data="/icon.svg" />
                 <div>
-                    <span class="fs-4 title">WhiteKuma</span> <span class="subtitle">MariaDB Backup Tool</span>
+                    <span class="fs-4 title">WhiteKuma</span>
+                    <span class="subtitle">MariaDB Backup Tool</span>
                 </div>
             </router-link>
 
@@ -35,7 +36,7 @@
                                 <li><hr class="dropdown-divider"></li>
 
                                 <!-- Functions -->
-                                <li>
+                                <li v-if="false">
                                     <router-link to="/settings/general" class="dropdown-item" :class="{ active: $route.path.includes('settings') }">
                                         <font-awesome-icon icon="cog" /> {{ $t("Settings") }}
                                     </router-link>
@@ -59,7 +60,9 @@
                 <div class="row">
                     <div v-if="$root.loggedIn" class="col-12 col-md-5 col-xl-4">
                         <div>
-                            <router-link to="/add" class="btn btn-primary mb-3"><font-awesome-icon icon="plus" /> {{ $t("Add Task") }}</router-link>
+                            <router-link to="/add" class="btn btn-primary mb-3">
+                                <font-awesome-icon icon="plus" /> {{ $t("Add Backup Job") }}
+                            </router-link>
                         </div>
                         <JobList :scrollbar="true" />
                     </div>

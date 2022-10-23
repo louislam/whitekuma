@@ -38,6 +38,7 @@ export abstract class Method {
 
     abstract backup(): Promise<BackupInfoJSON>;
     abstract restore(backupName : string): Promise<string>;
+    abstract getBackupList(): BackupInfoJSON[];
 
     get baseDir(): string {
         if (this.job.jobData.storagePath) {

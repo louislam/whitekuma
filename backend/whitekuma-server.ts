@@ -1,7 +1,7 @@
 import express, { Express, Request } from "express";
 import { Database } from "./database";
 import Cryptr from "cryptr";
-import { Job } from "./job";
+import fs from "fs";
 import consoleStamp from "console-stamp";
 import expressStaticGzip from "express-static-gzip";
 import jwt from "jsonwebtoken";
@@ -171,5 +171,5 @@ export class WhiteKumaServer {
 }
 
 import { apiRouter } from "./routers/api-router";
-import fs from "fs";
+import { Job } from "./job";
 

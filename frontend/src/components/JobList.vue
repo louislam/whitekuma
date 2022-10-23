@@ -1,6 +1,6 @@
 <template>
     <div class="shadow-box mb-3" :style="boxStyle">
-        <div class="list-header">
+        <div v-if="false" class="list-header">
             <div class="placeholder"></div>
             <div class="search-wrapper">
                 <a v-if="searchText == ''" class="search-icon">
@@ -20,19 +20,23 @@
             </div>
 
             <router-link v-for="(job, index) in jobList" :key="index" :to="'/job/' + job.id" class="item" :class="{ 'disabled': ! job.active }">
-                <div>{{ job.name }}</div>
+                <Pill type="primary">Active</Pill>
+                <div class="info">
+                    {{ job.name }}
+                </div>
             </router-link>
         </div>
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
 import axios from "axios";
+import Pill from "./Pill.vue";
 
 export default {
     components: {
-
+        Pill,
     },
     props: {
         /** Should the scrollbar be shown */
@@ -161,9 +165,10 @@ export default {
     .item {
         display: flex;
         align-items: center;
-        height: 50px;
+        height: 60px;
         text-decoration: none;
-        padding: 13px 15px 10px 15px;
+        padding: 0 15px;
+        gap: 10px;
         border-radius: 10px;
         transition: all ease-in-out 0.15s;
 
@@ -174,6 +179,8 @@ export default {
         .info {
             white-space: nowrap;
             overflow: hidden;
+            height: 27px;
+            display: flex;
         }
 
         &:hover {
