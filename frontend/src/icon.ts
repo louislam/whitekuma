@@ -9,7 +9,7 @@ import {
     faPlus,
     faCog,
     faSearch,
-    faSignOutAlt, faTrash, faEdit, faPlay, faDatabase
+    faSignOutAlt, faTrash, faEdit, faPlay, faDatabase, faPause
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -23,6 +23,7 @@ library.add(
     faEdit,
     faPlay,
     faDatabase,
+    faPause,
 );
 
 export { FontAwesomeIcon };

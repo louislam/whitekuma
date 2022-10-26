@@ -24,6 +24,8 @@ export default {
 
             sseClient = this.$sse.create({
                 url: axios.defaults.baseURL + "/api/sse",
+                format: "json",
+                polyfill: true,
             });
 
             sseClient.on("message", (msg) => {
@@ -57,11 +59,14 @@ export default {
                 .catch((err) => {
                     console.error("Failed to connect to SSE", err);
                 });
-
         },
 
         jobUpdate(job) {
-            console.info(job);
+            console.log("Update Job");
+            if (job.backupList === undefined) {
+                job.backupList = this.jobList[job.id].backupList;
+            }
+            this.jobList[job.id] = job;
         }
     }
 };

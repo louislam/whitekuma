@@ -5,6 +5,7 @@ import { MariaBackupMethod } from "./methods/mariabackup-method";
 import { Cron } from "croner";
 import { sb } from "./util";
 import { WhiteKumaServer } from "./whitekuma-server";
+import { SseManager } from "./sse-manager";
 
 export class Job {
     private readonly _jobData : JobData;
@@ -13,8 +14,13 @@ export class Job {
     private runningRestore: boolean = false;
     private cron : Cron;
 
-    toPublicJSON() {
+    toPublicJSON(includeBackUp = true) {
         const server = WhiteKumaServer.getInstance();
+        let backupList;
+
+        if (includeBackUp) {
+            backupList = this.method.getBackupList().reverse();
+        }
 
         return {
             id: this.jobData.id,
@@ -26,8 +32,8 @@ export class Job {
             username: this.jobData.username,
             password: server.cryptr.decrypt(this.jobData.password),
             customExecutable: this.jobData.customExecutable,
-            backupList: this.method.getBackupList().reverse(),
-            isRunning: this.cron.running(),
+            backupList,
+            isRunning: this.runningBackup,
             nextDate: this.cron.next()?.toJSON(),
             loaded: true,
         };
@@ -77,13 +83,16 @@ export class Job {
         console.log(sb(this._jobData.name), "Creating Backup...");
         try {
             this.runningBackup = true;
+            SseManager.getInstance().sendJob(this);
             await this.method.backup();
             this.runningBackup = false;
+            SseManager.getInstance().sendJob(this, true);
             console.log(sb(this._jobData.name), "Backup done");
         } catch (e) {
             console.log(sb(this._jobData.name), "Backup failed");
             console.error(sb(this._jobData.name), e);
             this.runningBackup = false;
+            SseManager.getInstance().sendJob(this);
             if (throwError) {
                 throw e;
             }

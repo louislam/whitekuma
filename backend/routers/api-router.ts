@@ -6,6 +6,7 @@ import cors from "cors";
 import { verify, hash } from "../password-hash";
 import jwt from "jsonwebtoken";
 import { JobSimple } from "../database";
+import { SseManager } from "../sse-manager";
 
 const server = WhiteKumaServer.getInstance();
 
@@ -217,20 +218,10 @@ apiRouter.delete("/job/:id", async (req, res) => {
 
 // TODO: sse
 apiRouter.get("/sse", (req, res) => {
-    console.log("new connection");
-
-    const sse = new SseStream(req);
-    sse.pipe(res);
-
-    const message = {
-        event: "server-time",
-        data: "hello\nworld",
-    };
-    sse.write(message);
-
-    res.on("close", () => {
-        console.log("lost connection");
-        sse.unpipe(res);
+    console.log("[sse] new connection");
+    let sseStream = SseManager.getInstance().subscribe(req, res);
+    sseStream.write({
+        data: "Welcome",
     });
 });
 

@@ -7,7 +7,7 @@
 
             <div>
                 <div class="mb-1">
-                    <Pill type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
+                    <Pill v-if="job.isRunning" type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
                 </div>
                 <div class="mb-3">
                     Next Backup: {{ formatDate(job.nextDate) }}
@@ -16,11 +16,11 @@
 
             <div class="functions mb-3">
                 <div class="btn-group" role="group">
-                    <button class="btn btn-primary" @click="">
+                    <button class="btn btn-primary" @click="backupNow">
                         <font-awesome-icon icon="database" /> {{ $t("Backup Now") }}
                     </button>
                     <button class="btn btn-normal" @click="">
-                        <font-awesome-icon icon="database" /> {{ $t("Pause") }}
+                        <font-awesome-icon icon="pause" /> {{ $t("Pause") }}
                     </button>
 
                     <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
@@ -109,16 +109,17 @@ export default {
 
     computed: {
         job() {
-            let id = this.$route.params.id;
-            return this.$root.jobList[id];
-        }
+            return this.$root.jobList[this.id];
+        },
+
+        id() {
+            return this.$route.params.id;
+        },
     },
 
     async mounted() {
-        let id = this.$route.params.id;
-
         try {
-            const res = await axios.get("/api/job/" + id);
+            const res = await axios.get("/api/job/" + this.id);
             this.$root.jobList[res.data.job.id] = res.data.job;
         } catch (e) {
             this.$root.showError(e);
@@ -126,6 +127,15 @@ export default {
     },
 
     methods: {
+
+        async backupNow() {
+            try {
+                await axios.get("/api/job/" + this.id + "/backup-now");
+            } catch (e) {
+                this.$root.showError(e);
+            }
+        },
+
         formatDate(value) : string {
             return dayjs(value).format(SQL_DATETIME_FORMAT);
         },
