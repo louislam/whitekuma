@@ -34,7 +34,7 @@ export class Job {
             customExecutable: this.jobData.customExecutable,
             backupList,
             isRunning: this.runningBackup,
-            nextDate: this.cron.next()?.toJSON(),
+            nextDate: (this._jobData.active) ? this.cron.next()?.toJSON() : undefined,
             loaded: true,
         };
     }
@@ -60,7 +60,7 @@ export class Job {
         console.debug(sb(this._jobData.name), "Is running after scheduled: " + this.cron.running());
     }
 
-    start() {
+    async start() {
         if (this.cron.running()) {
             console.log(sb(this._jobData.name), "Job Already Started");
             return;
@@ -68,8 +68,14 @@ export class Job {
 
         this.cron.resume();
 
-        console.log(sb(this._jobData.name), "Job Started");
+        if (!this._jobData.active) {
+            this._jobData.active = true;
+            await WhiteKumaServer.getInstance().db.write();
+        }
 
+        SseManager.getInstance().sendJob(this);
+
+        console.log(sb(this._jobData.name), "Job Started");
         console.debug(sb(this._jobData.name), "Is running: " + this.cron.running());
         console.debug(sb(this._jobData.name), "Next Date: " + this.cron.next());
     }
@@ -120,9 +126,12 @@ export class Job {
         }
     }
 
-    stop() {
+    async stop() {
         console.log(sb(this._jobData.name), "Stop Job");
-        this.cron.stop();
+        this._jobData.active = false;
+        this.cron.pause();
+        await WhiteKumaServer.getInstance().db.write();
+        SseManager.getInstance().sendJob(this);
     }
 
     get jobData(): JobData {

@@ -138,10 +138,10 @@ apiRouter.get("/job/:id", (req, res) => {
 });
 
 // Pause a Job
-apiRouter.get("/job/:id/pause", (req, res) => {
+apiRouter.get("/job/:id/pause", async (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
-        job.stop();
+        await job.stop();
         res.json({ });
     } catch (e) {
         responseError(res, e);
@@ -149,10 +149,10 @@ apiRouter.get("/job/:id/pause", (req, res) => {
 });
 
 // Resume a Job
-apiRouter.get("/job/:id/resume", (req, res) => {
+apiRouter.get("/job/:id/resume", async (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
-        job.start();
+        await job.start();
         res.json({ });
     } catch (e) {
         responseError(res, e);

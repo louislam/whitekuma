@@ -86,10 +86,10 @@ export class WhiteKumaServer {
             console.log(`⚡️Server is running at http://localhost:${this.port}`);
         });
 
-        this.startJobs();
+        await this.startJobs();
     }
 
-    startJobs() {
+    async startJobs() {
         console.log("Prepare to Start All Jobs");
 
         if (this._db.data.jobs.length === 0) {
@@ -104,7 +104,7 @@ export class WhiteKumaServer {
             this.jobList.push(job);
 
             if (jobData.active) {
-                job.start();
+                await job.start();
             }
         }
     }

@@ -20,7 +20,8 @@
             </div>
 
             <router-link v-for="(job, index) in $root.jobList" :key="index" :to="'/job/' + job.id" class="item" :class="{ 'disabled': ! job.active }">
-                <Pill type="primary">Active</Pill>
+                <Pill v-if="job.active" type="primary">Active</Pill>
+                <Pill v-if="!job.active" type="danger">Inactive</Pill>
                 <div class="info">
                     {{ job.name }}
                 </div>

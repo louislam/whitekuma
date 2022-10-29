@@ -120,7 +120,7 @@ export default {
                 try {
                     JSON.parse(this.monitor.body);
                 } catch (err) {
-                    toast.error(this.$t("BodyInvalidFormat") + err.message);
+                    this.$root.showError(err.message);
                     return false;
                 }
             }
@@ -128,7 +128,7 @@ export default {
                 try {
                     JSON.parse(this.monitor.headers);
                 } catch (err) {
-                    toast.error(this.$t("HeadersInvalidFormat") + err.message);
+                    this.$root.showError(err.message);
                     return false;
                 }
             }

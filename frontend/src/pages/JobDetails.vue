@@ -7,7 +7,7 @@
 
             <div>
                 <div class="mb-1">
-                    <Pill v-if="job.isRunning" type="info">Running</Pill> <Pill type="primary">Active</Pill> {{ job.cron }}
+                    <Pill v-if="job.isRunning" type="info">Running</Pill> <Pill v-if="job.active" type="primary">Active</Pill> <Pill v-if="!job.active" type="danger">Inactive</Pill> {{ job.cron }}
                 </div>
                 <div class="mb-3">
                     Next Backup: {{ formatDate(job.nextDate) }}
@@ -19,8 +19,13 @@
                     <button class="btn btn-primary" @click="backupNow">
                         <font-awesome-icon icon="database" /> {{ $t("Backup Now") }}
                     </button>
-                    <button class="btn btn-normal" @click="">
+
+                    <button v-if="job.active" class="btn btn-normal" @click="pause">
                         <font-awesome-icon icon="pause" /> {{ $t("Pause") }}
+                    </button>
+
+                    <button v-if="!job.active" class="btn btn-normal" @click="resume">
+                        <font-awesome-icon icon="play" /> {{ $t("Resume") }}
                     </button>
 
                     <router-link :to=" '/job/' + job.id +'/edit' " class="btn btn-normal">
@@ -136,7 +141,26 @@ export default {
             }
         },
 
+        async pause() {
+            try {
+                await axios.get("/api/job/" + this.id + "/pause");
+            } catch (e) {
+                this.$root.showError(e);
+            }
+        },
+
+        async resume() {
+            try {
+                await axios.get("/api/job/" + this.id + "/resume");
+            } catch (e) {
+                this.$root.showError(e);
+            }
+        },
+
         formatDate(value) : string {
+            if (!value) {
+                return "N/A";
+            }
             return dayjs(value).format(SQL_DATETIME_FORMAT);
         },
 
@@ -234,6 +258,7 @@ export default {
         .circle {
             width: 25px;
             height: 25px;
+            overflow: auto;
             border-radius: 50rem;
         }
 

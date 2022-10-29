@@ -34,7 +34,10 @@ export class SseManager {
 
     sendJob(job : Job, includeBackupList = false) {
         console.debug("[sse] sendJob");
-        this.sendMessage(job.toPublicJSON(includeBackupList), "job");
+
+        let jobJSON = job.toPublicJSON(includeBackupList);
+        console.debug(jobJSON);
+        this.sendMessage(jobJSON, "job");
     }
 
     sendMessage(data : object, event : string | undefined = undefined) {
