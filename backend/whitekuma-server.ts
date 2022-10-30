@@ -45,6 +45,7 @@ export class WhiteKumaServer {
         });
 
         console.log("Welcome to WhiteKuma");
+        console.log("Environment: " + process.env.NODE_ENV);
 
         if (process.env.npm_package_version) {
             this.version = process.env.npm_package_version;
@@ -82,11 +83,11 @@ export class WhiteKumaServer {
         this._secret = process.env.WK_SECRET || this._db.data.secret;
         this._cryptr = new Cryptr(this._secret);
 
-        this.app.listen(this.port, () => {
+        this.app.listen(this.port, async () => {
             console.log(`⚡️Server is running at http://localhost:${this.port}`);
+            await this.startJobs();
         });
 
-        await this.startJobs();
     }
 
     async startJobs() {

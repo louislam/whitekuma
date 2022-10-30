@@ -22,6 +22,14 @@ export class Job {
             backupList = this.method.getBackupList().reverse();
         }
 
+        let password = "";
+
+        try {
+            password = server.cryptr.decrypt(this._jobData.password);
+        } catch (e) {
+            console.error("Unable to decrypt password");
+        }
+
         return {
             id: this.jobData.id,
             name: this.jobData.name,
@@ -30,7 +38,7 @@ export class Job {
             hostname: this.jobData.hostname,
             port: this.jobData.port,
             username: this.jobData.username,
-            password: server.cryptr.decrypt(this.jobData.password),
+            password,
             customExecutable: this.jobData.customExecutable,
             backupList,
             isRunning: this.runningBackup,
