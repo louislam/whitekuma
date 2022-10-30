@@ -134,12 +134,23 @@ export class Job {
         }
     }
 
-    async stop() {
+    /**
+     * Stop the job and set it to inactive
+     */
+    async stopAndInactive() {
         console.log(sb(this._jobData.name), "Stop Job");
         this._jobData.active = false;
         this.cron.pause();
         await WhiteKumaServer.getInstance().db.write();
         SseManager.getInstance().sendJob(this);
+    }
+
+    /**
+     * Destroy the job
+     */
+    async destroy() {
+        console.log(sb(this._jobData.name), "Destroy Job");
+        this.cron.stop();
     }
 
     get jobData(): JobData {
@@ -150,7 +161,4 @@ export class Job {
         return this.runningBackup || this.runningRestore;
     }
 
-    async delete() {
-        // TODO
-    }
 }

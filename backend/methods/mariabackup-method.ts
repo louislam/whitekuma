@@ -90,7 +90,7 @@ export class MariaBackupMethod extends Method {
 
         let server = WhiteKumaServer.getInstance();
 
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "whitekuma_temp_backup_"));
+        const tempDir = finalDir + "_tmp";
         let previousBackupDir : string | null = null;
 
         if (previousBackupName) {
@@ -163,7 +163,20 @@ export class MariaBackupMethod extends Method {
         };
 
         fs.writeFileSync(path.join(tempDir, "info.json"), JSON.stringify(info));
-        fs.renameSync(tempDir, finalDir);
+
+        // Rename tempDir to finalDir
+        // if it throws cross device exception, copy tempDir to finalDir and remove tempDir
+        try {
+            fs.renameSync(tempDir, finalDir);
+        } catch (e) {
+            if (e instanceof Error && e.message === "EXDEV: cross-device link not permitted, rename") {
+                fs.copyFileSync(tempDir, finalDir);
+                fs.rmdirSync(tempDir);
+            } else {
+                throw e;
+            }
+        }
+
         return info;
     }
 

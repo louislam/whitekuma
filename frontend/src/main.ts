@@ -16,7 +16,6 @@ import job from "./mixins/job";
 import theme from "./mixins/theme";
 import lang from "./mixins/lang";
 import general from "./mixins/general";
-import "./dayjs";
 
 const app = createApp({
     mixins: [

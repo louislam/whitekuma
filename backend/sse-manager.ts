@@ -68,4 +68,10 @@ export class SseManager {
         }
     }
 
+    deleteJob(id: number) {
+        console.debug("[sse] deleteJob");
+        this.sendMessage({
+            id,
+        }, "deleteJob");
+    }
 }

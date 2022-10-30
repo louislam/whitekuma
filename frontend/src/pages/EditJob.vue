@@ -51,6 +51,11 @@
                                 <label for="customExecutable" class="form-label">Custom Executable</label>
                                 <input id="customExecutable" v-model="job.customExecutable" type="text" class="form-control" placeholder="mariabackup">
                             </div>
+
+                            <!-- Save Button -->
+                            <div class="mt-4 mb-1">
+                                <button type="submit" class="btn btn-primary">{{ $t("Save") }}</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,6 +65,8 @@
 </template>
 
 <script lang="ts">
+
+import axios from "axios";
 
 export default {
     components: {
@@ -89,50 +96,33 @@ export default {
         },
     },
     watch: {
-
         "$route.fullPath"() {
             this.init();
         },
-
     },
     mounted() {
         this.init();
     },
     methods: {
 
-        init() {
+        async init() {
             if (this.isAdd) {
                 this.job = {
-
+                    cron: "*/20 * * * *",
                 };
             } else if (this.isEdit) {
+                this.processing = true;
 
-            }
-
-        },
-
-        /**
-         * Validate form input
-         * @returns {boolean} Is the form input valid?
-         */
-        isInputValid() {
-            if (this.monitor.body) {
                 try {
-                    JSON.parse(this.monitor.body);
-                } catch (err) {
-                    this.$root.showError(err.message);
-                    return false;
+                    const res = await axios.get(`/api/job/${this.$route.params.id}`);
+                    this.job = res.data.job;
+                } catch (e) {
+                    this.$root.showError(e);
+                } finally {
+                    this.processing = false;
                 }
             }
-            if (this.monitor.headers) {
-                try {
-                    JSON.parse(this.monitor.headers);
-                } catch (err) {
-                    this.$root.showError(err.message);
-                    return false;
-                }
-            }
-            return true;
+
         },
 
         /**
@@ -140,9 +130,18 @@ export default {
          * @returns {void}
          */
         async submit() {
+            this.processing = true;
 
+            try {
+                const res = await axios.post("/api/job", this.job);
+                const job = res.data.job;
+                this.$router.push("/job/" + job.id);
+            } catch (e) {
+                this.$root.showError(e);
+            } finally {
+                this.processing = false;
+            }
         },
-
     },
 };
 </script>

@@ -7,6 +7,8 @@ import { verify, hash } from "../password-hash";
 import jwt from "jsonwebtoken";
 import { JobSimple } from "../database";
 import { SseManager } from "../sse-manager";
+import { isDev } from "../../shared/util";
+import { Job } from "../job";
 
 const server = WhiteKumaServer.getInstance();
 
@@ -141,7 +143,7 @@ apiRouter.get("/job/:id", (req, res) => {
 apiRouter.get("/job/:id/pause", async (req, res) => {
     try {
         const job = server.getJob(parseInt(req.params.id));
-        await job.stop();
+        await job.stopAndInactive();
         res.json({ });
     } catch (e) {
         responseError(res, e);
@@ -201,22 +203,38 @@ apiRouter.get("/job/:id/restore/:backupName", async (req, res) => {
 });
 
 // Create or Update a Job
-apiRouter.post("/job/:id", (req, res) => {
+apiRouter.post("/job", async (req, res) => {
+    try {
+        server.checkLogin(req);
+        console.debug("Call Create Job");
 
+        let job : Job;
+
+        if (req.body.id) {
+            job = await server.updateJob(req.body);
+        } else {
+            job = await server.createJob(req.body);
+        }
+
+        res.json({
+            job: job.toPublicJSON(),
+        });
+    } catch (e) {
+        responseError(res, e);
+    }
 });
 
 // Delete a Job
 apiRouter.delete("/job/:id", async (req, res) => {
     try {
-        const job = server.getJob(parseInt(req.params.id));
-        await job.delete();
+        const job = await server.deleteJob(parseInt(req.params.id));
         res.json({ });
     } catch (e) {
         responseError(res, e);
     }
 });
 
-// TODO: sse
+// sse
 apiRouter.get("/sse", (req, res) => {
     console.log("[sse] new connection");
     let sseStream = SseManager.getInstance().subscribe(req, res);
@@ -226,6 +244,10 @@ apiRouter.get("/sse", (req, res) => {
 });
 
 function responseError(response : Response, e : unknown) {
+    if (isDev) {
+        console.error(e);
+    }
+
     if (e instanceof Error) {
         response.status(400);
         response.json({

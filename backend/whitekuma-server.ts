@@ -1,5 +1,5 @@
 import express, { Express, Request } from "express";
-import { Database } from "./database";
+import { Database, JobData } from "./database";
 import Cryptr from "cryptr";
 import fs from "fs";
 import consoleStamp from "console-stamp";
@@ -111,6 +111,7 @@ export class WhiteKumaServer {
     }
 
     close() {
+
     }
 
     get cryptr(): Cryptr {
@@ -169,8 +170,121 @@ export class WhiteKumaServer {
         }
     }
 
+    async checkAndProcessJobData(jobData: JobData) {
+        if (typeof jobData.cron !== "string") {
+            throw new Error("Invalid Cron");
+        }
+
+        jobData.cron = jobData.cron.trim();
+        jobData.password = this.cryptr.encrypt(jobData.password);
+
+        return jobData;
+    }
+
+    async createJob(jobData: JobData) {
+        jobData = await this.checkAndProcessJobData(jobData);
+        jobData.id = this.generateJobID();
+        jobData.type = "mariabackup";
+        jobData.active = true;
+        jobData.storage = "local";
+        jobData.storagePath = "";
+
+        const job = new Job(jobData, this.dataDir);
+
+        console.debug("Job Created: " + jobData.id);
+
+        // Try to start the job.
+        await job.start();
+
+        console.debug("Job Started: " + jobData.id);
+
+        // Add to DB
+        this._db.data.jobs.push(jobData);
+        await this._db.write();
+
+        // Add to Job List
+        this.jobList.push(job);
+
+        SseManager.getInstance().sendJob(job);
+
+        return job;
+    }
+
+    async updateJob(newJobData: JobData) {
+        newJobData = await this.checkAndProcessJobData(newJobData);
+
+        const job = this.getJob(newJobData.id);
+        await job.destroy();
+
+        // Remove job from joblist
+        this.jobList = this.jobList.filter((job) => {
+            return job.jobData.id !== newJobData.id;
+        });
+
+        // Update job data in DB
+        let jobDataIndex = this._db.data.jobs.findIndex((jobData) => {
+            return jobData.id === job.jobData.id;
+        });
+
+        let jobData = this._db.data.jobs[jobDataIndex];
+
+        console.debug(jobData);
+
+        jobData.name = newJobData.name;
+        jobData.cron = newJobData.cron;
+        jobData.hostname = newJobData.hostname;
+        jobData.hostname = newJobData.hostname;
+        jobData.port = newJobData.port;
+        jobData.username = newJobData.username;
+        jobData.password = newJobData.password;
+        jobData.customExecutable = newJobData.customExecutable;
+
+        console.debug(jobData);
+
+        await this._db.write();
+
+        // Add back to joblist
+        const newJob = new Job(jobData, this.dataDir);
+        this.jobList.push(newJob);
+
+        return newJob;
+    }
+
+    private generateJobID() : number {
+        let id = 0;
+        for (let job of this._db.data.jobs) {
+            if (job.id > id) {
+                id = job.id;
+            }
+        }
+        return id + 1;
+    }
+
+    async deleteJob(id: number) {
+        let job = this.getJob(id);
+
+        // Stop the Job
+        await job.destroy();
+
+        // Remove from JobList
+        let index = this.jobList.indexOf(job);
+        this.jobList.splice(index, 1);
+
+        // Remove from DB
+        let jobDataIndex = this._db.data.jobs.findIndex((jobData) => {
+            return jobData.id === id;
+        });
+
+        this._db.data.jobs.splice(jobDataIndex, 1);
+
+        // Write to DB
+        await this._db.write();
+
+        SseManager.getInstance().deleteJob(id);
+    }
 }
 
 import { apiRouter } from "./routers/api-router";
 import { Job } from "./job";
+import { SseManager } from "./sse-manager";
 

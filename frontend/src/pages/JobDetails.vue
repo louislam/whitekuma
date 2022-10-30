@@ -90,19 +90,24 @@
                     </div>
                 </div>
             </div>
+
+            <Confirm ref="confirmDelete" @yes="confirmDelete">
+                {{ $t("Are you sure you want to delete this job?") }}
+            </Confirm>
         </div>
     </transition>
 </template>
 
 <script lang="ts">
 import axios from "axios";
-import { dayjs } from "../dayjs.js";
 import { SQL_DATETIME_FORMAT } from "../../../shared/util";
 import Pill from "../components/Pill.vue";
+import Confirm from "../components/Confirm.vue";
 
 export default {
 
     components: {
+        Confirm,
         Pill,
     },
 
@@ -157,11 +162,24 @@ export default {
             }
         },
 
+        async deleteDialog() {
+            this.$refs.confirmDelete.show();
+        },
+
+        async confirmDelete() {
+            try {
+                await axios.delete("/api/job/" + this.id);
+                this.$router.push("/");
+            } catch (e) {
+                this.$root.showError(e);
+            }
+        },
+
         formatDate(value) : string {
             if (!value) {
                 return "N/A";
             }
-            return dayjs(value).format(SQL_DATETIME_FORMAT);
+            return value;
         },
 
         size(b) : string {

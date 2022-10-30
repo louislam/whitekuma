@@ -32,6 +32,7 @@ export default {
                 console.log("Unknown Msg: " + msg);
             });
             sseClient.on("job", this.jobUpdate);
+            sseClient.on("deleteJob", this.deleteJob);
 
             // Catch any errors (ie. lost connections, etc.)
             sseClient.on("error", (e) => {
@@ -67,6 +68,11 @@ export default {
                 job.backupList = this.jobList[job.id].backupList;
             }
             this.jobList[job.id] = job;
+        },
+
+        deleteJob(job) {
+            console.log("Delete Job");
+            delete this.jobList[job.id];
         }
     }
 };
